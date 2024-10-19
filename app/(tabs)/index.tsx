@@ -12,11 +12,29 @@ import { ja } from "date-fns/locale";
 import React, { useState, useEffect } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
+// Type definitions
+type HabitStatus = "unchecked" | "achieved" | "not_achieved";
+
+interface Habit {
+	id: string;
+	name: string;
+	color: string;
+	icon: string;
+}
+
+interface WeeklyLog {
+	[date: string]: HabitStatus;
+}
+
+interface WeeklyLogs {
+	[habitId: string]: WeeklyLog;
+}
+
 // HomeScreen Component
 const HomeScreen = () => {
-	const [currentWeek, setCurrentWeek] = useState(new Date());
-	const [habits, setHabits] = useState([]);
-	const [weeklyLogs, setWeeklyLogs] = useState({});
+	const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
+	const [habits, setHabits] = useState<Habit[]>([]);
+	const [weeklyLogs, setWeeklyLogs] = useState<WeeklyLogs>({});
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -24,14 +42,14 @@ const HomeScreen = () => {
 
 	const fetchHabitsAndLogs = () => {
 		// Placeholder for API call
-		const fetchedHabits = [
+		const fetchedHabits: Habit[] = [
 			{ id: "1", name: "読書", color: "#FF5733", icon: "book" },
 			{ id: "2", name: "運動", color: "#33FF57", icon: "fitness-center" },
 		];
 		setHabits(fetchedHabits);
 
 		// Initialize all past days as 'unchecked'
-		const newWeeklyLogs = {};
+		const newWeeklyLogs: WeeklyLogs = {};
 		fetchedHabits.forEach((habit) => {
 			newWeeklyLogs[habit.id] = {};
 			for (let i = 0; i < 7; i++) {
@@ -47,11 +65,11 @@ const HomeScreen = () => {
 		setWeeklyLogs(newWeeklyLogs);
 	};
 
-	const toggleHabitStatus = (habitId, date) => {
+	const toggleHabitStatus = (habitId: string, date: string) => {
 		setWeeklyLogs((prevLogs) => {
 			const habitLog = prevLogs[habitId] || {};
 			const currentStatus = habitLog[date] || "unchecked";
-			let newStatus;
+			let newStatus: HabitStatus;
 			switch (currentStatus) {
 				case "unchecked":
 					newStatus = "achieved";
@@ -75,7 +93,7 @@ const HomeScreen = () => {
 		});
 	};
 
-	const resetHabitStatus = (habitId, date) => {
+	const resetHabitStatus = (habitId: string, date: string) => {
 		setWeeklyLogs((prevLogs) => ({
 			...prevLogs,
 			[habitId]: {
@@ -120,7 +138,15 @@ const HomeScreen = () => {
 };
 
 // WeeklyCalendarView Component
-const WeeklyCalendarView = ({ currentWeek, onPreviousWeek, onNextWeek }) => {
+interface WeeklyCalendarViewProps {
+	currentWeek: Date;
+	onPreviousWeek: () => void;
+	onNextWeek: () => void;
+}
+
+const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
+	const { currentWeek, onPreviousWeek, onNextWeek } = props;
+
 	return (
 		<View style={styles.calendarContainer}>
 			<Button
@@ -149,13 +175,18 @@ const WeeklyCalendarView = ({ currentWeek, onPreviousWeek, onNextWeek }) => {
 };
 
 // HabitList Component
-const HabitList = ({
-	habits,
-	weeklyLogs,
-	currentWeek,
-	onToggleStatus,
-	onResetStatus,
-}) => {
+interface HabitListProps {
+	habits: Habit[];
+	weeklyLogs: WeeklyLogs;
+	currentWeek: Date;
+	onToggleStatus: (habitId: string, date: string) => void;
+	onResetStatus: (habitId: string, date: string) => void;
+}
+
+const HabitList = (props: HabitListProps) => {
+	const { habits, weeklyLogs, currentWeek, onToggleStatus, onResetStatus } =
+		props;
+
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 	const weekDays = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -192,16 +223,21 @@ const HabitList = ({
 };
 
 // HabitRow Component
-const HabitRow = ({
-	habit,
-	weeklyLog,
-	currentWeek,
-	onToggleStatus,
-	onResetStatus,
-}) => {
+interface HabitRowProps {
+	habit: Habit;
+	weeklyLog: WeeklyLog;
+	currentWeek: Date;
+	onToggleStatus: (habitId: string, date: string) => void;
+	onResetStatus: (habitId: string, date: string) => void;
+}
+
+const HabitRow = (props: HabitRowProps) => {
+	const { habit, weeklyLog, currentWeek, onToggleStatus, onResetStatus } =
+		props;
+
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 
-	const getIconName = (status) => {
+	const getIconName = (status: HabitStatus): string => {
 		switch (status) {
 			case "achieved":
 				return "check-circle";
@@ -212,7 +248,7 @@ const HabitRow = ({
 		}
 	};
 
-	const getIconColor = (status) => {
+	const getIconColor = (status: HabitStatus): string => {
 		switch (status) {
 			case "achieved":
 				return habit.color;
