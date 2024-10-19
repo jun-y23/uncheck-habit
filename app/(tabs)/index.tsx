@@ -9,6 +9,7 @@ import {
 	subWeeks,
 } from "date-fns";
 import { ja } from "date-fns/locale";
+import { useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -33,6 +34,7 @@ interface WeeklyLogs {
 
 // HomeScreen Component
 const HomeScreen = () => {
+	const router = useRouter();
 	const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [weeklyLogs, setWeeklyLogs] = useState<WeeklyLogs>({});
@@ -132,9 +134,7 @@ const HomeScreen = () => {
 				<Button
 					icon={<Icon name="add" color="#ffffff" />}
 					title="習慣を追加"
-					onPress={() => {
-						/* Navigate to Add Habit Screen */
-					}}
+					onPress={() => router.push("/new-habit")}
 					buttonStyle={styles.addButton}
 				/>
 			</View>
