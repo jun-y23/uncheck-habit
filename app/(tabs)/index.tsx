@@ -113,27 +113,31 @@ const HomeScreen = () => {
 	};
 
 	return (
-		<SafeAreaView>
-			<WeeklyCalendarView
-				currentWeek={currentWeek}
-				onPreviousWeek={goToPreviousWeek}
-				onNextWeek={goToNextWeek}
-			/>
-			<HabitList
-				habits={habits}
-				weeklyLogs={weeklyLogs}
-				currentWeek={currentWeek}
-				onToggleStatus={toggleHabitStatus}
-				onResetStatus={resetHabitStatus}
-			/>
-			<Button
-				icon={<Icon name="add" color="#ffffff" />}
-				title="習慣を追加"
-				onPress={() => {
-					/* Navigate to Add Habit Screen */
-				}}
-				containerStyle={styles.addButton}
-			/>
+		<SafeAreaView style={styles.safeArea}>
+			<View style={styles.container}>
+				<WeeklyCalendarView
+					currentWeek={currentWeek}
+					onPreviousWeek={goToPreviousWeek}
+					onNextWeek={goToNextWeek}
+				/>
+				<HabitList
+					habits={habits}
+					weeklyLogs={weeklyLogs}
+					currentWeek={currentWeek}
+					onToggleStatus={toggleHabitStatus}
+					onResetStatus={resetHabitStatus}
+				/>
+			</View>
+			<View style={styles.buttonContainer}>
+				<Button
+					icon={<Icon name="add" color="#ffffff" />}
+					title="習慣を追加"
+					onPress={() => {
+						/* Navigate to Add Habit Screen */
+					}}
+					buttonStyle={styles.addButton}
+				/>
+			</View>
 		</SafeAreaView>
 	);
 };
@@ -301,9 +305,25 @@ const HabitRow = (props: HabitRowProps) => {
 };
 
 const styles = StyleSheet.create({
-	container: {
+	safeArea: {
 		flex: 1,
 		backgroundColor: "#f5f5f5",
+	},
+	container: {
+		flex: 1,
+	},
+	buttonContainer: {
+		position: "absolute",
+		bottom: 20,
+		right: 20,
+		// 追加: SafeAreaViewの内側に配置されるようにする
+		// iPhoneXなどのノッチがある端末でも適切に表示される
+		marginBottom: 10,
+	},
+	addButton: {
+		borderRadius: 30,
+		paddingVertical: 10,
+		paddingHorizontal: 20,
 	},
 	calendarContainer: {
 		flexDirection: "row",
@@ -345,12 +365,6 @@ const styles = StyleSheet.create({
 	dateText: {
 		fontSize: 14,
 		fontWeight: "bold",
-	},
-	addButton: {
-		position: "absolute",
-		bottom: 20,
-		right: 20,
-		borderRadius: 30,
 	},
 });
 
