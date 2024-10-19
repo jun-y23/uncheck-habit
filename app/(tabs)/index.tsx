@@ -1,42 +1,22 @@
 import { Button, Icon, ListItem, Text } from "@rneui/themed";
-import { addDays, addWeeks, format, startOfWeek, subWeeks } from "date-fns";
-import { ja } from "date-fns/locale";
-import React, { useState, useEffect, useRef } from "react";
 import {
-	Animated,
-	FlatList,
-	PanResponder,
-	StyleSheet,
-	View,
-} from "react-native";
+	addDays,
+	addWeeks,
+	format,
+	isFuture,
+	isToday,
+	startOfWeek,
+	subWeeks,
+} from "date-fns";
+import { ja } from "date-fns/locale";
+import React, { useState, useEffect } from "react";
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
 // HomeScreen Component
 const HomeScreen = () => {
 	const [currentWeek, setCurrentWeek] = useState(new Date());
 	const [habits, setHabits] = useState([]);
 	const [weeklyLogs, setWeeklyLogs] = useState({});
-	const pan = useRef(new Animated.ValueXY()).current;
-	const panResponder = useRef(
-		PanResponder.create({
-			onMoveShouldSetPanResponder: (_, gestureState) => {
-				return Math.abs(gestureState.dx) > 20;
-			},
-			onPanResponderMove: Animated.event([null, { dx: pan.x }], {
-				useNativeDriver: false,
-			}),
-			onPanResponderRelease: (_, gestureState) => {
-				if (gestureState.dx > 50) {
-					setCurrentWeek((prevWeek) => subWeeks(prevWeek, 1));
-				} else if (gestureState.dx < -50) {
-					setCurrentWeek((prevWeek) => addWeeks(prevWeek, 1));
-				}
-				Animated.spring(pan, {
-					toValue: { x: 0, y: 0 },
-					useNativeDriver: false,
-				}).start();
-			},
-		}),
-	).current;
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -44,22 +24,47 @@ const HomeScreen = () => {
 
 	const fetchHabitsAndLogs = () => {
 		// Placeholder for API call
-		setHabits([
+		const fetchedHabits = [
 			{ id: "1", name: "読書", color: "#FF5733", icon: "book" },
 			{ id: "2", name: "運動", color: "#33FF57", icon: "fitness-center" },
-		]);
-		setWeeklyLogs({
-			"1": { "2024-03-10": "achieved", "2024-03-11": "not_achieved" },
-			"2": { "2024-03-10": "achieved", "2024-03-11": "achieved" },
+		];
+		setHabits(fetchedHabits);
+
+		// Initialize all past days as 'unchecked'
+		const newWeeklyLogs = {};
+		fetchedHabits.forEach((habit) => {
+			newWeeklyLogs[habit.id] = {};
+			for (let i = 0; i < 7; i++) {
+				const date = format(
+					addDays(startOfWeek(currentWeek, { weekStartsOn: 1 }), i),
+					"yyyy-MM-dd",
+				);
+				if (!isFuture(new Date(date)) && !isToday(new Date(date))) {
+					newWeeklyLogs[habit.id][date] = "unchecked";
+				}
+			}
 		});
+		setWeeklyLogs(newWeeklyLogs);
 	};
 
-	const onToggleHabitStatus = (habitId, date) => {
+	const toggleHabitStatus = (habitId, date) => {
 		setWeeklyLogs((prevLogs) => {
 			const habitLog = prevLogs[habitId] || {};
-			const currentStatus = habitLog[date];
-			const newStatus =
-				currentStatus === "achieved" ? "not_achieved" : "achieved";
+			const currentStatus = habitLog[date] || "unchecked";
+			let newStatus;
+			switch (currentStatus) {
+				case "unchecked":
+					newStatus = "achieved";
+					break;
+				case "achieved":
+					newStatus = "not_achieved";
+					break;
+				case "not_achieved":
+					newStatus = "unchecked";
+					break;
+				default:
+					newStatus = "unchecked";
+			}
 			return {
 				...prevLogs,
 				[habitId]: {
@@ -70,17 +75,37 @@ const HomeScreen = () => {
 		});
 	};
 
+	const resetHabitStatus = (habitId, date) => {
+		setWeeklyLogs((prevLogs) => ({
+			...prevLogs,
+			[habitId]: {
+				...prevLogs[habitId],
+				[date]: "unchecked",
+			},
+		}));
+	};
+
+	const goToPreviousWeek = () => {
+		setCurrentWeek((prevWeek) => subWeeks(prevWeek, 1));
+	};
+
+	const goToNextWeek = () => {
+		setCurrentWeek((prevWeek) => addWeeks(prevWeek, 1));
+	};
+
 	return (
-		<Animated.View
-			style={[styles.container, { transform: [{ translateX: pan.x }] }]}
-			{...panResponder.panHandlers}
-		>
-			<WeeklyCalendarView currentWeek={currentWeek} />
+		<View style={styles.container}>
+			<WeeklyCalendarView
+				currentWeek={currentWeek}
+				onPreviousWeek={goToPreviousWeek}
+				onNextWeek={goToNextWeek}
+			/>
 			<HabitList
 				habits={habits}
 				weeklyLogs={weeklyLogs}
 				currentWeek={currentWeek}
-				onToggleStatus={onToggleHabitStatus}
+				onToggleStatus={toggleHabitStatus}
+				onResetStatus={resetHabitStatus}
 			/>
 			<Button
 				icon={<Icon name="add" color="#ffffff" />}
@@ -90,23 +115,47 @@ const HomeScreen = () => {
 				}}
 				containerStyle={styles.addButton}
 			/>
-		</Animated.View>
+		</View>
 	);
 };
 
 // WeeklyCalendarView Component
-const WeeklyCalendarView = ({ currentWeek }) => {
+const WeeklyCalendarView = ({ currentWeek, onPreviousWeek, onNextWeek }) => {
 	return (
 		<View style={styles.calendarContainer}>
+			<Button
+				icon={
+					<Icon name="chevron-left" type="material-community" color="#000000" />
+				}
+				type="clear"
+				onPress={onPreviousWeek}
+			/>
 			<Text h4 style={styles.monthText}>
 				{format(currentWeek, "yyyy年M月", { locale: ja })}
 			</Text>
+			<Button
+				icon={
+					<Icon
+						name="chevron-right"
+						type="material-community"
+						color="#000000"
+					/>
+				}
+				type="clear"
+				onPress={onNextWeek}
+			/>
 		</View>
 	);
 };
 
 // HabitList Component
-const HabitList = ({ habits, weeklyLogs, currentWeek, onToggleStatus }) => {
+const HabitList = ({
+	habits,
+	weeklyLogs,
+	currentWeek,
+	onToggleStatus,
+	onResetStatus,
+}) => {
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 	const weekDays = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -134,6 +183,7 @@ const HabitList = ({ habits, weeklyLogs, currentWeek, onToggleStatus }) => {
 						weeklyLog={weeklyLogs[item.id] || {}}
 						currentWeek={currentWeek}
 						onToggleStatus={onToggleStatus}
+						onResetStatus={onResetStatus}
 					/>
 				)}
 			/>
@@ -142,8 +192,36 @@ const HabitList = ({ habits, weeklyLogs, currentWeek, onToggleStatus }) => {
 };
 
 // HabitRow Component
-const HabitRow = ({ habit, weeklyLog, currentWeek, onToggleStatus }) => {
+const HabitRow = ({
+	habit,
+	weeklyLog,
+	currentWeek,
+	onToggleStatus,
+	onResetStatus,
+}) => {
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
+
+	const getIconName = (status) => {
+		switch (status) {
+			case "achieved":
+				return "check-circle";
+			case "not_achieved":
+				return "close-circle";
+			default:
+				return "circle-outline";
+		}
+	};
+
+	const getIconColor = (status) => {
+		switch (status) {
+			case "achieved":
+				return habit.color;
+			case "not_achieved":
+				return "red";
+			default:
+				return "gray";
+		}
+	};
 
 	return (
 		<ListItem containerStyle={styles.habitRow}>
@@ -153,17 +231,32 @@ const HabitRow = ({ habit, weeklyLog, currentWeek, onToggleStatus }) => {
 			</ListItem.Content>
 			{[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
 				const date = format(addDays(startDate, dayOffset), "yyyy-MM-dd");
-				const isAchieved = weeklyLog[date] === "achieved";
+				const status = weeklyLog[date] || "unchecked";
+				const isFutureDate = isFuture(new Date(date));
+				const isTodayDate = isToday(new Date(date));
+
 				return (
-					<View key={dayOffset} style={styles.dateColumn}>
+					<TouchableOpacity
+						key={dayOffset}
+						style={styles.dateColumn}
+						onPress={() => {
+							if (!isFutureDate && !isTodayDate) {
+								onToggleStatus(habit.id, date);
+							}
+						}}
+						onLongPress={() => {
+							if (!isFutureDate && !isTodayDate) {
+								onResetStatus(habit.id, date);
+							}
+						}}
+					>
 						<Icon
-							name={isAchieved ? "check-circle" : "circle-outline"}
+							name={getIconName(status)}
 							type="material-community"
-							color={isAchieved ? habit.color : "gray"}
+							color={getIconColor(status)}
 							size={24}
-							onPress={() => onToggleStatus(habit.id, date)}
 						/>
-					</View>
+					</TouchableOpacity>
 				);
 			})}
 		</ListItem>
@@ -176,6 +269,9 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f5f5f5",
 	},
 	calendarContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		backgroundColor: "white",
 		padding: 10,
 		marginBottom: 10,
