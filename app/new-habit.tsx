@@ -1,23 +1,97 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, CheckBox, Icon, Input, Text } from "@rneui/themed";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Button, Icon, Input, Text } from "@rneui/themed";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import * as z from "zod";
 
-// Zodスキーマの定義
+// habitのデータ構造
+interface Habit {
+	id: string;
+	name: string;
+	color: string;
+	description?: string;
+	frequency: FrequencyPattern;
+	startDate: Date;
+	goal?: {
+		type: "count" | "duration";
+		value: number;
+		unit: string;
+	};
+	effect?: {
+		value: number;
+		unit: string;
+	};
+}
+
+// 頻度パターンの定義（変更なし）
+type FrequencyPattern = DailyPattern | WeeklyPattern | MonthlyPattern;
+
+interface DailyPattern {
+	type: "daily";
+	interval: number;
+}
+
+interface WeeklyPattern {
+	type: "weekly";
+	daysOfWeek: number[];
+	interval?: number;
+}
+
+interface MonthlyPattern {
+	type: "monthly";
+	dayOfMonth?: number;
+	weekOfMonth?: number;
+	dayOfWeek?: number;
+	interval?: number;
+}
+
+// Zodスキーマの定義（更新）
 const habitSchema = z.object({
 	name: z
 		.string()
 		.min(1, "習慣名は必須です")
 		.max(50, "習慣名は50文字以内で入力してください"),
 	color: z.string(),
-	frequency: z.number().int().positive("頻度は正の整数で入力してください"),
-	frequencyUnit: z.enum(["daily", "weekly", "monthly"]),
 	description: z
 		.string()
 		.max(200, "説明は200文字以内で入力してください")
+		.optional(),
+	frequency: z.discriminatedUnion("type", [
+		z.object({
+			type: z.literal("daily"),
+			interval: z.number().int().positive(),
+		}),
+		z.object({
+			type: z.literal("weekly"),
+			daysOfWeek: z
+				.array(z.number().min(0).max(6))
+				.min(1, "少なくとも1日は選択してください"),
+			interval: z.number().int().positive().optional(),
+		}),
+		z.object({
+			type: z.literal("monthly"),
+			dayOfMonth: z.number().min(1).max(31).optional(),
+			weekOfMonth: z.number().min(1).max(5).optional(),
+			dayOfWeek: z.number().min(0).max(6).optional(),
+			interval: z.number().int().positive().optional(),
+		}),
+	]),
+	startDate: z.date(),
+	goal: z
+		.object({
+			type: z.enum(["count", "duration"]),
+			value: z.number().positive(),
+			unit: z.string(),
+		})
+		.optional(),
+	effect: z
+		.object({
+			value: z.number(),
+			unit: z.string(),
+		})
 		.optional(),
 });
 
@@ -30,17 +104,21 @@ const NewHabit = () => {
 	const {
 		control,
 		handleSubmit,
+		watch,
+		setValue,
 		formState: { errors },
 	} = useForm<HabitFormData>({
 		resolver: zodResolver(habitSchema),
 		defaultValues: {
 			name: "",
 			color: "#FF0000",
-			frequency: 1,
-			frequencyUnit: "daily",
-			description: "",
+			frequency: { type: "daily", interval: 1 },
+			startDate: new Date(),
 		},
 	});
+
+	const frequencyType = watch("frequency.type");
+	const goalType = watch("goal.type");
 
 	const onSubmit = (data: HabitFormData) => {
 		console.log(data);
@@ -48,6 +126,25 @@ const NewHabit = () => {
 		// 保存成功後、ホーム画面に戻る
 		router.back();
 	};
+
+	const FrequencyOption = ({ type, label }) => (
+		<TouchableOpacity
+			style={[
+				styles.frequencyOption,
+				frequencyType === type && styles.frequencyOptionSelected,
+			]}
+			onPress={() => setValue("frequency", { type, interval: 1 })}
+		>
+			<Text
+				style={[
+					styles.frequencyOptionText,
+					frequencyType === type && styles.frequencyOptionTextSelected,
+				]}
+			>
+				{label}
+			</Text>
+		</TouchableOpacity>
+	);
 
 	return (
 		<ScrollView style={styles.container}>
@@ -92,55 +189,101 @@ const NewHabit = () => {
 				)}
 			/>
 
-			<Controller
-				control={control}
-				name="frequency"
-				render={({ field: { onChange, value } }) => (
-					<Input
-						label="頻度"
-						keyboardType="numeric"
-						value={value.toString()}
-						onChangeText={(text) => onChange(Number.parseInt(text) || 0)}
-						errorMessage={errors.frequency?.message}
+			<Text style={styles.label}>頻度</Text>
+			<View style={styles.frequencyContainer}>
+				<FrequencyOption type="daily" label="毎日" />
+				<FrequencyOption type="weekly" label="毎週" />
+				<FrequencyOption type="monthly" label="毎月" />
+			</View>
+
+			{frequencyType === "daily" && (
+				<Controller
+					control={control}
+					name="frequency.interval"
+					render={({ field: { onChange, value } }) => (
+						<Input
+							label="間隔（日）"
+							keyboardType="numeric"
+							value={value?.toString()}
+							onChangeText={(text) => onChange(Number.parseInt(text) || 1)}
+							errorMessage={errors.frequency?.interval?.message}
+						/>
+					)}
+				/>
+			)}
+
+			{frequencyType === "weekly" && (
+				<>
+					<Text style={styles.sublabel}>曜日を選択</Text>
+					<Controller
+						control={control}
+						name="frequency.daysOfWeek"
+						render={({ field: { onChange, value } }) => (
+							<View style={styles.weekDaysContainer}>
+								{["日", "月", "火", "水", "木", "金", "土"].map(
+									(day, index) => (
+										<TouchableOpacity
+											key={index}
+											style={[
+												styles.weekDayButton,
+												value?.includes(index) && styles.weekDayButtonSelected,
+											]}
+											onPress={() => {
+												const newValue = value?.includes(index)
+													? value.filter((v) => v !== index)
+													: [...(value || []), index];
+												onChange(newValue);
+											}}
+										>
+											<Text
+												style={[
+													styles.weekDayText,
+													value?.includes(index) && styles.weekDayTextSelected,
+												]}
+											>
+												{day}
+											</Text>
+										</TouchableOpacity>
+									),
+								)}
+							</View>
+						)}
 					/>
-				)}
-			/>
+				</>
+			)}
 
-			<Text style={styles.label}>頻度の単位</Text>
+			{frequencyType === "monthly" && (
+				<Controller
+					control={control}
+					name="frequency.dayOfMonth"
+					render={({ field: { onChange, value } }) => (
+						<Input
+							label="日付 (1-31)"
+							keyboardType="numeric"
+							value={value?.toString()}
+							onChangeText={(text) =>
+								onChange(Number.parseInt(text) || undefined)
+							}
+							errorMessage={errors.frequency?.dayOfMonth?.message}
+						/>
+					)}
+				/>
+			)}
+
+			<Text style={styles.label}>開始日</Text>
 			<Controller
 				control={control}
-				name="frequencyUnit"
+				name="startDate"
 				render={({ field: { onChange, value } }) => (
-					<View style={styles.frequencyUnitContainer}>
-						{[
-							{ value: "daily", label: "毎日" },
-							{ value: "weekly", label: "毎週" },
-							{ value: "monthly", label: "毎月" },
-						].map((unit) => (
-							<CheckBox
-								key={unit.value}
-								title={unit.label}
-								checkedIcon="dot-circle-o"
-								uncheckedIcon="circle-o"
-								checked={value === unit.value}
-								onPress={() => onChange(unit.value)}
-								containerStyle={styles.radioContainer}
-							/>
-						))}
-					</View>
-				)}
-			/>
-
-			<Controller
-				control={control}
-				name="description"
-				render={({ field: { onChange, value } }) => (
-					<Input
-						label="説明 (オプション)"
+					<DateTimePicker
 						value={value}
-						onChangeText={onChange}
-						multiline
-						errorMessage={errors.description?.message}
+						mode="date"
+						display="default"
+						onChange={(event, selectedDate) => {
+							const currentDate = selectedDate || value;
+							onChange(currentDate);
+						}}
+						locale="ja-JP"
 					/>
 				)}
 			/>
@@ -174,6 +317,14 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		marginBottom: 10,
 	},
+	sublabel: {
+		fontSize: 16,
+		fontWeight: "600",
+		marginTop: 10,
+		marginBottom: 5,
+		color: "#555",
+	},
+
 	colorContainer: {
 		flexDirection: "row",
 		flexWrap: "wrap",
@@ -188,14 +339,62 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 	},
-	frequencyUnitContainer: {
+
+	picker: {
 		marginBottom: 20,
 	},
-	radioContainer: {
-		backgroundColor: "transparent",
-		borderWidth: 0,
-		padding: 0,
-		marginLeft: 0,
+	weekDayCheckbox: {
+		width: "14%",
+		margin: 0,
+		padding: 5,
+	},
+	frequencyContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginBottom: 20,
+	},
+
+	frequencyOption: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: 10,
+		borderRadius: 5,
+		backgroundColor: "#F0F0F0",
+		marginHorizontal: 5,
+	},
+	frequencyOptionSelected: {
+		backgroundColor: "#007AFF",
+	},
+	frequencyOptionText: {
+		fontSize: 16,
+		color: "#000000",
+	},
+	frequencyOptionTextSelected: {
+		color: "#FFFFFF",
+	},
+	weekDaysContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginBottom: 20,
+	},
+	weekDayButton: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: "#F0F0F0",
+	},
+	weekDayButtonSelected: {
+		backgroundColor: "#007AFF",
+	},
+	weekDayText: {
+		fontSize: 16,
+		color: "#000000",
+	},
+	weekDayTextSelected: {
+		color: "#FFFFFF",
 	},
 });
 
