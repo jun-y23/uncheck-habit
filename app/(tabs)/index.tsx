@@ -11,6 +11,7 @@ import {
 import { ja } from "date-fns/locale";
 import React, { useState, useEffect } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -112,7 +113,7 @@ const HomeScreen = () => {
 	};
 
 	return (
-		<View style={styles.container}>
+		<SafeAreaView>
 			<WeeklyCalendarView
 				currentWeek={currentWeek}
 				onPreviousWeek={goToPreviousWeek}
@@ -133,7 +134,7 @@ const HomeScreen = () => {
 				}}
 				containerStyle={styles.addButton}
 			/>
-		</View>
+		</SafeAreaView>
 	);
 };
 
