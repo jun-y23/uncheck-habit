@@ -32,17 +32,21 @@ export default function RootLayout() {
 
 	return (
 		<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-			<Stack
-				screenOptions={{
-					headerStyle: {
-						backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
-					},
-					headerTintColor: colorScheme === "dark" ? "#fff" : "#000",
-					headerTitle: "習慣トラッカー",
-				}}
-			>
-				<Stack.Screen name="(tabs)" />
+			<Stack>
+				<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 				<Stack.Screen name="+not-found" />
+				<Stack.Screen
+					name="habit-selection"
+					options={{
+						title: "習慣を選択",
+					}}
+				/>
+				<Stack.Screen
+					name="habit-details"
+					options={{
+						title: "習慣の詳細",
+					}}
+				/>
 			</Stack>
 		</ThemeProvider>
 	);
