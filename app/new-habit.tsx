@@ -22,7 +22,6 @@ type FrequencyPattern = DailyPattern | WeeklyPattern;
 
 interface DailyPattern {
 	type: "daily";
-	interval: number;
 }
 
 interface WeeklyPattern {
@@ -75,7 +74,7 @@ const NewHabit = () => {
 		defaultValues: {
 			name: "",
 			color: "#FF0000",
-			frequency: { type: "daily", interval: 1 },
+			frequency: { type: "daily" },
 			startDate: new Date(),
 		},
 	});
@@ -234,7 +233,7 @@ const NewHabit = () => {
 };
 
 // 背景色に基づいてコントラストの高い色（白または黒）を返す関数
-const getContrastColor = (hexColor) => {
+const getContrastColor = (hexColor: string) => {
 	// 16進数の色コードをRGB値に変換
 	const r = Number.parseInt(hexColor.slice(1, 3), 16);
 	const g = Number.parseInt(hexColor.slice(3, 5), 16);
