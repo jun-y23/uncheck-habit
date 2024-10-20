@@ -2,8 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Button, Icon, Input, Text } from "@rneui/themed";
 import { Stack, useRouter } from "expo-router";
-import React from "react";
-import { Controller, useForm } from "react-hook-form";
+import type React from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import * as z from "zod";
 
@@ -27,7 +27,7 @@ interface Habit {
 }
 
 // 頻度パターンの定義（変更なし）
-type FrequencyPattern = DailyPattern | WeeklyPattern | MonthlyPattern;
+type FrequencyPattern = DailyPattern | WeeklyPattern;
 
 interface DailyPattern {
 	type: "daily";
@@ -37,14 +37,6 @@ interface DailyPattern {
 interface WeeklyPattern {
 	type: "weekly";
 	daysOfWeek: number[];
-	interval?: number;
-}
-
-interface MonthlyPattern {
-	type: "monthly";
-	dayOfMonth?: number;
-	weekOfMonth?: number;
-	dayOfWeek?: number;
 	interval?: number;
 }
 
@@ -69,13 +61,6 @@ const habitSchema = z.object({
 			daysOfWeek: z
 				.array(z.number().min(0).max(6))
 				.min(1, "少なくとも1日は選択してください"),
-			interval: z.number().int().positive().optional(),
-		}),
-		z.object({
-			type: z.literal("monthly"),
-			dayOfMonth: z.number().min(1).max(31).optional(),
-			weekOfMonth: z.number().min(1).max(5).optional(),
-			dayOfWeek: z.number().min(0).max(6).optional(),
 			interval: z.number().int().positive().optional(),
 		}),
 	]),
@@ -127,24 +112,37 @@ const NewHabit = () => {
 		router.back();
 	};
 
-	const FrequencyOption = ({ type, label }) => (
-		<TouchableOpacity
-			style={[
-				styles.frequencyOption,
-				frequencyType === type && styles.frequencyOptionSelected,
-			]}
-			onPress={() => setValue("frequency", { type, interval: 1 })}
-		>
-			<Text
+	const FrequencyOption: React.FC<{ type: string; label: string }> = ({
+		type,
+		label,
+	}) => {
+		const frequencyType = useWatch({ control, name: "frequency.type" });
+
+		const handlePress = () => {
+			setValue("frequency", { type, interval: 1 } as any, {
+				shouldValidate: true,
+			});
+		};
+
+		return (
+			<TouchableOpacity
 				style={[
-					styles.frequencyOptionText,
-					frequencyType === type && styles.frequencyOptionTextSelected,
+					styles.frequencyOption,
+					frequencyType === type && styles.frequencyOptionSelected,
 				]}
+				onPress={handlePress}
 			>
-				{label}
-			</Text>
-		</TouchableOpacity>
-	);
+				<Text
+					style={[
+						styles.frequencyOptionText,
+						frequencyType === type && styles.frequencyOptionTextSelected,
+					]}
+				>
+					{label}
+				</Text>
+			</TouchableOpacity>
+		);
+	};
 
 	return (
 		<ScrollView style={styles.container}>
@@ -193,7 +191,6 @@ const NewHabit = () => {
 			<View style={styles.frequencyContainer}>
 				<FrequencyOption type="daily" label="毎日" />
 				<FrequencyOption type="weekly" label="毎週" />
-				<FrequencyOption type="monthly" label="毎月" />
 			</View>
 
 			{frequencyType === "daily" && (
@@ -252,24 +249,6 @@ const NewHabit = () => {
 				</>
 			)}
 
-			{frequencyType === "monthly" && (
-				<Controller
-					control={control}
-					name="frequency.dayOfMonth"
-					render={({ field: { onChange, value } }) => (
-						<Input
-							label="日付 (1-31)"
-							keyboardType="numeric"
-							value={value?.toString()}
-							onChangeText={(text) =>
-								onChange(Number.parseInt(text) || undefined)
-							}
-							errorMessage={errors.frequency?.dayOfMonth?.message}
-						/>
-					)}
-				/>
-			)}
-
 			<Text style={styles.label}>開始日</Text>
 			<Controller
 				control={control}
@@ -305,6 +284,38 @@ const getContrastColor = (hexColor) => {
 
 	// 輝度が128以上なら黒、そうでなければ白を返す
 	return brightness > 128 ? "black" : "white";
+};
+
+const FrequencyOption: React.FC<{ type: string; label: string }> = ({
+	type,
+	label,
+}) => {
+	const frequencyType = useWatch({ control, name: "frequency.type" });
+
+	const handlePress = () => {
+		setValue("frequency", { type, interval: 1 } as any, {
+			shouldValidate: true,
+		});
+	};
+
+	return (
+		<TouchableOpacity
+			style={[
+				styles.frequencyOption,
+				frequencyType === type && styles.frequencyOptionSelected,
+			]}
+			onPress={handlePress}
+		>
+			<Text
+				style={[
+					styles.frequencyOptionText,
+					frequencyType === type && styles.frequencyOptionTextSelected,
+				]}
+			>
+				{label}
+			</Text>
+		</TouchableOpacity>
+	);
 };
 
 const styles = StyleSheet.create({
