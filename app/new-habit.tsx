@@ -258,7 +258,7 @@ const NewHabit = () => {
 						value={value}
 						mode="date"
 						display="default"
-						onChange={(event, selectedDate) => {
+						onChange={(_event, selectedDate) => {
 							const currentDate = selectedDate || value;
 							onChange(currentDate);
 						}}
@@ -286,38 +286,6 @@ const getContrastColor = (hexColor) => {
 	return brightness > 128 ? "black" : "white";
 };
 
-const FrequencyOption: React.FC<{ type: string; label: string }> = ({
-	type,
-	label,
-}) => {
-	const frequencyType = useWatch({ control, name: "frequency.type" });
-
-	const handlePress = () => {
-		setValue("frequency", { type, interval: 1 } as any, {
-			shouldValidate: true,
-		});
-	};
-
-	return (
-		<TouchableOpacity
-			style={[
-				styles.frequencyOption,
-				frequencyType === type && styles.frequencyOptionSelected,
-			]}
-			onPress={handlePress}
-		>
-			<Text
-				style={[
-					styles.frequencyOptionText,
-					frequencyType === type && styles.frequencyOptionTextSelected,
-				]}
-			>
-				{label}
-			</Text>
-		</TouchableOpacity>
-	);
-};
-
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
@@ -343,9 +311,9 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	colorButton: {
-		width: 50,
-		height: 50,
-		borderRadius: 25,
+		width: 30,
+		height: 30,
+		borderRadius: 5,
 		margin: 5,
 		justifyContent: "center",
 		alignItems: "center",
