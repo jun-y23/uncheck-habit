@@ -162,9 +162,10 @@ const HabitDetailsScreen = () => {
 			)}
 
 			<Button
-				title="設定する"
+				title="この設定で始める"
 				onPress={handleSubmit(onSubmit)}
 				containerStyle={styles.submitButton}
+				color="warning"
 			/>
 		</ScrollView>
 	);
