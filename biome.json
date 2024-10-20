@@ -19,7 +19,8 @@
 			"tsconfig.test.json",
 			"tsconfig.web.json",
 			"tsconfig.web.build.json",
-			".expo"
+			".expo",
+			"scripts"
 		]
 	},
 	"formatter": {

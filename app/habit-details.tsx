@@ -105,7 +105,7 @@ const HabitDetailsScreen = () => {
 								{["日", "月", "火", "水", "木", "金", "土"].map(
 									(day, index) => (
 										<TouchableOpacity
-											key={index}
+											key={`day-${day}`}
 											style={[
 												styles.weekDayButton,
 												value?.includes(index) && styles.weekDayButtonSelected,

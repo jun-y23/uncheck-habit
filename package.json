@@ -10,7 +10,8 @@
 		"web": "expo start --web",
 		"test": "jest --watchAll",
 		"lint": "biome lint .",
-		"format": "biome format . --write"
+		"format": "biome format . --write",
+		"check": "biome check . --write"
 	},
 	"jest": {
 		"preset": "jest-expo"

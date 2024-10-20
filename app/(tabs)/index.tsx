@@ -41,7 +41,7 @@ const HomeScreen = () => {
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
-	}, [currentWeek]);
+	}, []);
 
 	const fetchHabitsAndLogs = () => {
 		// Placeholder for API call
@@ -53,7 +53,7 @@ const HomeScreen = () => {
 
 		// Initialize all past days as 'unchecked'
 		const newWeeklyLogs: WeeklyLogs = {};
-		fetchedHabits.forEach((habit) => {
+		for (const habit of fetchedHabits) {
 			newWeeklyLogs[habit.id] = {};
 			for (let i = 0; i < 7; i++) {
 				const date = format(
@@ -64,7 +64,7 @@ const HomeScreen = () => {
 					newWeeklyLogs[habit.id][date] = "unchecked";
 				}
 			}
-		});
+		}
 		setWeeklyLogs(newWeeklyLogs);
 	};
 
@@ -202,7 +202,7 @@ const HabitList = (props: HabitListProps) => {
 					<Text style={styles.headerText}>習慣</Text>
 				</ListItem.Content>
 				{weekDays.map((day, index) => (
-					<View key={index} style={styles.dateColumn}>
+					<View key={`list-day-${day}`} style={styles.dateColumn}>
 						<Text style={styles.dayText}>{day}</Text>
 						<Text style={styles.dateText}>
 							{format(addDays(startDate, index), "d")}
