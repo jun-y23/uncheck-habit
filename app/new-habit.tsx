@@ -15,15 +15,6 @@ interface Habit {
 	description?: string;
 	frequency: FrequencyPattern;
 	startDate: Date;
-	goal?: {
-		type: "count" | "duration";
-		value: number;
-		unit: string;
-	};
-	effect?: {
-		value: number;
-		unit: string;
-	};
 }
 
 // 頻度パターンの定義（変更なし）
@@ -65,19 +56,6 @@ const habitSchema = z.object({
 		}),
 	]),
 	startDate: z.date(),
-	goal: z
-		.object({
-			type: z.enum(["count", "duration"]),
-			value: z.number().positive(),
-			unit: z.string(),
-		})
-		.optional(),
-	effect: z
-		.object({
-			value: z.number(),
-			unit: z.string(),
-		})
-		.optional(),
 });
 
 type HabitFormData = z.infer<typeof habitSchema>;
@@ -103,7 +81,6 @@ const NewHabit = () => {
 	});
 
 	const frequencyType = watch("frequency.type");
-	const goalType = watch("goal.type");
 
 	const onSubmit = (data: HabitFormData) => {
 		console.log(data);
@@ -357,6 +334,30 @@ const styles = StyleSheet.create({
 		color: "#000000",
 	},
 	weekDayTextSelected: {
+		color: "#FFFFFF",
+	},
+	optionContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginBottom: 20,
+	},
+	optionButton: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: 10,
+		borderRadius: 5,
+		backgroundColor: "#F0F0F0",
+		marginHorizontal: 5,
+	},
+	optionButtonSelected: {
+		backgroundColor: "#007AFF",
+	},
+	optionButtonText: {
+		fontSize: 16,
+		color: "#000000",
+	},
+	optionButtonTextSelected: {
 		color: "#FFFFFF",
 	},
 });
