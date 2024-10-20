@@ -193,22 +193,6 @@ const NewHabit = () => {
 				<FrequencyOption type="weekly" label="毎週" />
 			</View>
 
-			{frequencyType === "daily" && (
-				<Controller
-					control={control}
-					name="frequency.interval"
-					render={({ field: { onChange, value } }) => (
-						<Input
-							label="間隔（日）"
-							keyboardType="numeric"
-							value={value?.toString()}
-							onChangeText={(text) => onChange(Number.parseInt(text) || 1)}
-							errorMessage={errors.frequency?.interval?.message}
-						/>
-					)}
-				/>
-			)}
-
 			{frequencyType === "weekly" && (
 				<>
 					<Text style={styles.sublabel}>曜日を選択</Text>
