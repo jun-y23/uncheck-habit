@@ -15,7 +15,11 @@ import {
 import * as z from "zod";
 
 const habitSchema = z.object({
-	name: z.string().min(1, "習慣名は必須です"),
+	name: z
+		.string()
+		.min(1, "習慣名は必須です")
+		.max(50, "習慣名は50文字以内で入力してください"),
+
 	frequency: z.object({
 		type: z.enum(["daily", "weekly"]),
 		value: z.number().int().positive().optional(),
