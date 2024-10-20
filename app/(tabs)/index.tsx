@@ -134,7 +134,7 @@ const HomeScreen = () => {
 				<Button
 					icon={<Icon name="add" color="#ffffff" />}
 					title="習慣を追加"
-					onPress={() => router.push("/new-habit")}
+					onPress={() => router.push("/habit-selection")}
 					buttonStyle={styles.addButton}
 				/>
 			</View>
