@@ -1,4 +1,7 @@
-import { Button, Icon, ListItem, Text } from "@rneui/themed";
+import CalendarOverlay from "@/components/CalendarOverlay";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Icon, Input, ListItem, Text } from "@rneui/themed";
+import { BottomSheet } from "@rneui/themed";
 import {
 	addDays,
 	addWeeks,
@@ -11,9 +14,11 @@ import {
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as z from "zod";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -33,12 +38,34 @@ interface WeeklyLogs {
 	[habitId: string]: WeeklyLog;
 }
 
+const habitLogSchema = z.object({
+	status: z.enum(["unchecked", "achieved", "not_achieved"]),
+	memo: z.string().max(200, "メモは200文字以内で入力してください"),
+});
+
+type HabitLogFormData = z.infer<typeof habitLogSchema>;
+
 // HomeScreen Component
 const HomeScreen = () => {
 	const router = useRouter();
 	const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [weeklyLogs, setWeeklyLogs] = useState<WeeklyLogs>({});
+	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+	const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+	const [selectedDate, setSelectedDate] = useState<string>("");
+	const [initialFormData, setInitialFormData] = useState<HabitLogFormData>({
+		status: "unchecked",
+		memo: "",
+	});
+
+	const { control, handleSubmit, reset, setValue } = useForm<HabitLogFormData>({
+		resolver: zodResolver(habitLogSchema),
+		defaultValues: {
+			status: "unchecked",
+			memo: "",
+		},
+	});
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -115,6 +142,40 @@ const HomeScreen = () => {
 		setCurrentWeek((prevWeek) => addWeeks(prevWeek, 1));
 	};
 
+	const openOverlay = useCallback(
+		(habit: Habit, date: string) => {
+			const habitLog = weeklyLogs[habit.id] || {};
+			const currentEntry = habitLog[date] || { status: "unchecked", memo: "" };
+			setSelectedHabit(habit);
+			setSelectedDate(date);
+			setInitialFormData({
+				status: currentEntry.status,
+				memo: currentEntry.memo,
+			});
+			setIsOverlayVisible(true);
+		},
+		[weeklyLogs],
+	);
+
+	const closeOverlay = useCallback(() => {
+		setIsOverlayVisible(false);
+	}, []);
+
+	const saveHabitLog = useCallback(
+		(data: HabitLogFormData) => {
+			if (selectedHabit && selectedDate) {
+				setWeeklyLogs((prevLogs) => ({
+					...prevLogs,
+					[selectedHabit.id]: {
+						...prevLogs[selectedHabit.id],
+						[selectedDate]: { status: data.status, memo: data.memo },
+					},
+				}));
+			}
+		},
+		[selectedHabit, selectedDate],
+	);
+
 	return (
 		<SafeAreaView style={styles.safeArea}>
 			<View style={styles.container}>
@@ -127,8 +188,7 @@ const HomeScreen = () => {
 					habits={habits}
 					weeklyLogs={weeklyLogs}
 					currentWeek={currentWeek}
-					onToggleStatus={toggleHabitStatus}
-					onResetStatus={resetHabitStatus}
+					openBottomSheet={openOverlay}
 				/>
 			</View>
 			<View style={styles.buttonContainer}>
@@ -139,6 +199,13 @@ const HomeScreen = () => {
 					buttonStyle={styles.addButton}
 				/>
 			</View>
+
+			<CalendarOverlay
+				isVisible={isOverlayVisible}
+				onClose={closeOverlay}
+				onSave={saveHabitLog}
+				initialData={initialFormData}
+			/>
 		</SafeAreaView>
 	);
 };
@@ -185,13 +252,11 @@ interface HabitListProps {
 	habits: Habit[];
 	weeklyLogs: WeeklyLogs;
 	currentWeek: Date;
-	onToggleStatus: (habitId: string, date: string) => void;
-	onResetStatus: (habitId: string, date: string) => void;
+	openBottomSheet: (habit: Habit, date: string) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
-	const { habits, weeklyLogs, currentWeek, onToggleStatus, onResetStatus } =
-		props;
+	const { habits, weeklyLogs, currentWeek, openBottomSheet } = props;
 
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 	const weekDays = ["月", "火", "水", "木", "金", "土", "日"];
@@ -219,8 +284,7 @@ const HabitList = (props: HabitListProps) => {
 						habit={item}
 						weeklyLog={weeklyLogs[item.id] || {}}
 						currentWeek={currentWeek}
-						onToggleStatus={onToggleStatus}
-						onResetStatus={onResetStatus}
+						openBottomSheet={openBottomSheet}
 					/>
 				)}
 			/>
@@ -233,16 +297,14 @@ interface HabitRowProps {
 	habit: Habit;
 	weeklyLog: WeeklyLog;
 	currentWeek: Date;
-	onToggleStatus: (habitId: string, date: string) => void;
-	onResetStatus: (habitId: string, date: string) => void;
+	openBottomSheet: (habit: Habit, date: string) => void;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
 	habit,
 	weeklyLog,
 	currentWeek,
-	onToggleStatus,
-	onResetStatus,
+	openBottomSheet,
 }) => {
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 
@@ -266,22 +328,13 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			{[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
 				const date = format(addDays(startDate, dayOffset), "yyyy-MM-dd");
 				const status = weeklyLog[date] || "unchecked";
-				const isFutureDate = isFuture(new Date(date));
-				const isTodayDate = isToday(new Date(date));
 
 				return (
 					<TouchableOpacity
 						key={dayOffset}
 						style={styles.dateColumn}
 						onPress={() => {
-							if (!isFutureDate && !isTodayDate) {
-								onToggleStatus(habit.id, date);
-							}
-						}}
-						onLongPress={() => {
-							if (!isFutureDate && !isTodayDate) {
-								onResetStatus(habit.id, date);
-							}
+							openBottomSheet(habit, date);
 						}}
 					>
 						<View
