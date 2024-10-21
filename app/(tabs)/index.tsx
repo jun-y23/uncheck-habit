@@ -63,7 +63,7 @@ const HomeScreen = () => {
 	const { control, handleSubmit, reset, setValue } = useForm<HabitLogFormData>({
 		resolver: zodResolver(habitLogSchema),
 		defaultValues: {
-			status: "unchecked",
+			status: "not_achieved",
 			memo: "",
 		},
 	});

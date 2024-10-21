@@ -46,7 +46,9 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 
 	const { control, handleSubmit, reset } = useForm<HabitLogFormData>({
 		resolver: zodResolver(habitLogSchema),
-		defaultValues: initialData,
+		defaultValues: {
+			status: initialData.status === "unchecked" ? "not_achieved" : "achieved",
+		},
 	});
 
 	useEffect(() => {
@@ -114,9 +116,9 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 						render={({ field: { onChange, value } }) => (
 							<View style={styles.statusButtons}>
 								<Button
-									title="未チェック"
-									onPress={() => onChange("unchecked")}
-									type={value === "unchecked" ? "solid" : "outline"}
+									title="未達成"
+									onPress={() => onChange("not_achieved")}
+									type={value === "not_achieved" ? "solid" : "outline"}
 									buttonStyle={styles.statusButton}
 								/>
 								<Button
@@ -126,9 +128,9 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 									buttonStyle={styles.statusButton}
 								/>
 								<Button
-									title="未達成"
-									onPress={() => onChange("not_achieved")}
-									type={value === "not_achieved" ? "solid" : "outline"}
+									title="未チェック"
+									onPress={() => onChange("unchecked")}
+									type={value === "unchecked" ? "solid" : "outline"}
 									buttonStyle={styles.statusButton}
 								/>
 							</View>
