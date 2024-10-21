@@ -10,7 +10,8 @@ import {
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -236,31 +237,23 @@ interface HabitRowProps {
 	onResetStatus: (habitId: string, date: string) => void;
 }
 
-const HabitRow = (props: HabitRowProps) => {
-	const { habit, weeklyLog, currentWeek, onToggleStatus, onResetStatus } =
-		props;
-
+const HabitRow: React.FC<HabitRowProps> = ({
+	habit,
+	weeklyLog,
+	currentWeek,
+	onToggleStatus,
+	onResetStatus,
+}) => {
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 
-	const getIconName = (status: HabitStatus): string => {
+	const getCellColor = (status: HabitStatus): string => {
 		switch (status) {
 			case "achieved":
-				return "check-circle";
+				return habit.color; // 達成時は習慣の色
 			case "not_achieved":
-				return "close-circle";
+				return "#ff7f7f"; // 未達成時は薄い赤色
 			default:
-				return "circle-outline";
-		}
-	};
-
-	const getIconColor = (status: HabitStatus): string => {
-		switch (status) {
-			case "achieved":
-				return habit.color;
-			case "not_achieved":
-				return "red";
-			default:
-				return "gray";
+				return "#ebedf0"; // 未チェック時はGitHubの空セルの色
 		}
 	};
 
@@ -291,11 +284,8 @@ const HabitRow = (props: HabitRowProps) => {
 							}
 						}}
 					>
-						<Icon
-							name={getIconName(status)}
-							type="material-community"
-							color={getIconColor(status)}
-							size={24}
+						<View
+							style={[styles.cell, { backgroundColor: getCellColor(status) }]}
 						/>
 					</TouchableOpacity>
 				);
@@ -357,7 +347,8 @@ const styles = StyleSheet.create({
 	},
 	dateColumn: {
 		flex: 1,
-		alignItems: "center",
+		aspectRatio: 1,
+		padding: 2,
 	},
 	dayText: {
 		fontSize: 12,
@@ -365,6 +356,10 @@ const styles = StyleSheet.create({
 	dateText: {
 		fontSize: 14,
 		fontWeight: "bold",
+	},
+	cell: {
+		flex: 1,
+		borderRadius: 2,
 	},
 });
 
