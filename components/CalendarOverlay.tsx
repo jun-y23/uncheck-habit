@@ -24,7 +24,7 @@ const DRAG_THRESHOLD = 50;
 
 const habitLogSchema = z.object({
 	status: z.enum(["unchecked", "achieved", "not_achieved"]),
-	memo: z.string().max(200, "メモは200文字以内で入力してください"),
+	memo: z.string().max(200, "メモは200文字以内で入力してください").optional(),
 });
 
 type HabitLogFormData = z.infer<typeof habitLogSchema>;
