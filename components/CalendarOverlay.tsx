@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
 		padding: 20,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		height: SCREEN_HEIGHT * 0.75,
+		height: SCREEN_HEIGHT * 0.5,
 	},
 	handle: {
 		width: 40,
