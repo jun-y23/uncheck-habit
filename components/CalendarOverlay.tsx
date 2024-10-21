@@ -9,15 +9,18 @@ import {
 	TouchableWithoutFeedback,
 	View,
 } from "react-native";
+import { PanGestureHandler } from "react-native-gesture-handler";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
 	withTiming,
 	runOnJS,
+	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const DRAG_THRESHOLD = 50;
 
 const habitLogSchema = z.object({
 	status: z.enum(["unchecked", "achieved", "not_achieved"]),
@@ -66,6 +69,23 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 		});
 	}, [onClose]);
 
+	const gestureHandler = useAnimatedGestureHandler({
+		onStart: (_, context: { startY: number }) => {
+			context.startY = translateY.value;
+		},
+		onActive: (event, context) => {
+			translateY.value = context.startY + event.translationY;
+		},
+		onEnd: (event) => {
+			if (event.translationY > DRAG_THRESHOLD) {
+				translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 }, () => {
+					runOnJS(onClose)();
+				});
+			} else {
+				translateY.value = withTiming(0);
+			}
+		},
+	});
 	const onSubmit = useCallback(
 		(data: HabitLogFormData) => {
 			onSave(data);
@@ -85,58 +105,60 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			<TouchableWithoutFeedback onPress={handleClose}>
 				<View style={styles.backdrop} />
 			</TouchableWithoutFeedback>
-			<Animated.View style={[styles.contentContainer, rStyle]}>
-				<View style={styles.handle} />
-				<Controller
-					control={control}
-					name="status"
-					render={({ field: { onChange, value } }) => (
-						<View style={styles.statusButtons}>
-							<Button
-								title="未チェック"
-								onPress={() => onChange("unchecked")}
-								type={value === "unchecked" ? "solid" : "outline"}
-								buttonStyle={styles.statusButton}
+			<PanGestureHandler onGestureEvent={gestureHandler}>
+				<Animated.View style={[styles.contentContainer, rStyle]}>
+					<View style={styles.handle} />
+					<Controller
+						control={control}
+						name="status"
+						render={({ field: { onChange, value } }) => (
+							<View style={styles.statusButtons}>
+								<Button
+									title="未チェック"
+									onPress={() => onChange("unchecked")}
+									type={value === "unchecked" ? "solid" : "outline"}
+									buttonStyle={styles.statusButton}
+								/>
+								<Button
+									title="達成"
+									onPress={() => onChange("achieved")}
+									type={value === "achieved" ? "solid" : "outline"}
+									buttonStyle={styles.statusButton}
+								/>
+								<Button
+									title="未達成"
+									onPress={() => onChange("not_achieved")}
+									type={value === "not_achieved" ? "solid" : "outline"}
+									buttonStyle={styles.statusButton}
+								/>
+							</View>
+						)}
+					/>
+					<Controller
+						control={control}
+						name="memo"
+						render={({
+							field: { onChange, onBlur, value },
+							fieldState: { error },
+						}) => (
+							<Input
+								placeholder="メモを入力"
+								value={value}
+								onChangeText={onChange}
+								onBlur={onBlur}
+								multiline
+								errorMessage={error?.message}
+								containerStyle={styles.memoInput}
 							/>
-							<Button
-								title="達成"
-								onPress={() => onChange("achieved")}
-								type={value === "achieved" ? "solid" : "outline"}
-								buttonStyle={styles.statusButton}
-							/>
-							<Button
-								title="未達成"
-								onPress={() => onChange("not_achieved")}
-								type={value === "not_achieved" ? "solid" : "outline"}
-								buttonStyle={styles.statusButton}
-							/>
-						</View>
-					)}
-				/>
-				<Controller
-					control={control}
-					name="memo"
-					render={({
-						field: { onChange, onBlur, value },
-						fieldState: { error },
-					}) => (
-						<Input
-							placeholder="メモを入力"
-							value={value}
-							onChangeText={onChange}
-							onBlur={onBlur}
-							multiline
-							errorMessage={error?.message}
-							containerStyle={styles.memoInput}
-						/>
-					)}
-				/>
-				<Button
-					title="保存"
-					onPress={handleSubmit(onSubmit)}
-					buttonStyle={styles.saveButton}
-				/>
-			</Animated.View>
+						)}
+					/>
+					<Button
+						title="保存"
+						onPress={handleSubmit(onSubmit)}
+						buttonStyle={styles.saveButton}
+					/>
+				</Animated.View>
+			</PanGestureHandler>
 		</View>
 	);
 };

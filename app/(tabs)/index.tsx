@@ -19,6 +19,7 @@ import { Controller, useForm } from "react-hook-form";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -177,36 +178,38 @@ const HomeScreen = () => {
 	);
 
 	return (
-		<SafeAreaView style={styles.safeArea}>
-			<View style={styles.container}>
-				<WeeklyCalendarView
-					currentWeek={currentWeek}
-					onPreviousWeek={goToPreviousWeek}
-					onNextWeek={goToNextWeek}
-				/>
-				<HabitList
-					habits={habits}
-					weeklyLogs={weeklyLogs}
-					currentWeek={currentWeek}
-					openBottomSheet={openOverlay}
-				/>
-			</View>
-			<View style={styles.buttonContainer}>
-				<Button
-					icon={<Icon name="add" color="#ffffff" />}
-					title="習慣を追加"
-					onPress={() => router.push("/habit-selection")}
-					buttonStyle={styles.addButton}
-				/>
-			</View>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<SafeAreaView style={styles.safeArea}>
+				<View style={styles.container}>
+					<WeeklyCalendarView
+						currentWeek={currentWeek}
+						onPreviousWeek={goToPreviousWeek}
+						onNextWeek={goToNextWeek}
+					/>
+					<HabitList
+						habits={habits}
+						weeklyLogs={weeklyLogs}
+						currentWeek={currentWeek}
+						openBottomSheet={openOverlay}
+					/>
+				</View>
+				<View style={styles.buttonContainer}>
+					<Button
+						icon={<Icon name="add" color="#ffffff" />}
+						title="習慣を追加"
+						onPress={() => router.push("/habit-selection")}
+						buttonStyle={styles.addButton}
+					/>
+				</View>
 
-			<CalendarOverlay
-				isVisible={isOverlayVisible}
-				onClose={closeOverlay}
-				onSave={saveHabitLog}
-				initialData={initialFormData}
-			/>
-		</SafeAreaView>
+				<CalendarOverlay
+					isVisible={isOverlayVisible}
+					onClose={closeOverlay}
+					onSave={saveHabitLog}
+					initialData={initialFormData}
+				/>
+			</SafeAreaView>
+		</GestureHandlerRootView>
 	);
 };
 
