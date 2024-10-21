@@ -55,7 +55,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 		} else {
 			translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
 		}
-	}, [isVisible]);
+	}, [isVisible, translateY]);
 
 	const rStyle = useAnimatedStyle(() => {
 		return {
@@ -67,7 +67,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 		translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 }, () => {
 			runOnJS(onClose)();
 		});
-	}, [onClose]);
+	}, [onClose, translateY]);
 
 	const gestureHandler = useAnimatedGestureHandler({
 		onStart: (_, context: { startY: number }) => {

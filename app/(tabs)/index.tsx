@@ -17,9 +17,9 @@ import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
