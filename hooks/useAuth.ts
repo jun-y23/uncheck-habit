@@ -12,10 +12,7 @@ export function useSession() {
       setIsLoading(false);
 
       if (!session) {
-        supabase.auth.signInWithPassword({
-          email: "user@example.com",
-          password: "aaaaaaa",
-        }).then(
+        supabase.auth.signInAnonymously().then(
           ({ data: { session } }) => {
             setSession(session);
             setIsLoading(false);

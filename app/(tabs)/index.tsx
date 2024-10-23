@@ -75,7 +75,7 @@ const HomeScreen = () => {
 	const fetchHabitsAndLogs = async () => {
 		// Placeholder for API call
 		const { data: fetchedHabits, error } = await supabase
-			.from("habit_templates")
+			.from("habits")
 			.select("id, name, icon");
 
 		if (error) {
