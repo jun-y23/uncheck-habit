@@ -8,7 +8,7 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
-import { supabase } from "../libs/supabase";
+import { useHabitTemplates } from "../hooks/useHabitTemplates";
 
 interface Habit {
 	id: string;
@@ -18,26 +18,9 @@ interface Habit {
 
 const HabitSelectionScreen = () => {
 	const [customHabit, setCustomHabit] = useState("");
-	const [habitTemplates, setHabitTemplates] = useState<Habit[]>([]);
 	const router = useRouter();
 
-	useEffect(() => {
-		fetchHabitsAndLogs();
-	}, []);
-
-	const fetchHabitsAndLogs = async () => {
-		// Placeholder for API call
-		const { data: fetchedHabits, error } = await supabase
-			.from("habit_templates")
-			.select("id, name, icon");
-
-		if (error) {
-			console.error("Error fetching habits:", error);
-			return;
-		}
-
-		setHabitTemplates(fetchedHabits);
-	};
+	const { templates, loading, error } = useHabitTemplates();
 
 	const handleHabitSelect = (habit) => {
 		router.push({
@@ -79,7 +62,7 @@ const HabitSelectionScreen = () => {
 			/>
 			<Text style={styles.subtitle}>よくある習慣</Text>
 			<FlatList
-				data={habitTemplates}
+				data={templates}
 				renderItem={renderHabitItem}
 				keyExtractor={(item) => item.id}
 			/>
