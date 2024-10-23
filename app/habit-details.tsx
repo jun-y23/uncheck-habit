@@ -13,6 +13,7 @@ import {
 	View,
 } from "react-native";
 import * as z from "zod";
+import { useHabitCreate } from "../hooks/useHabitCreate";
 import { supabase } from "../libs/supabase";
 
 const habitSchema = z.object({
@@ -40,6 +41,7 @@ const HabitDetailsScreen = () => {
 	const params = useLocalSearchParams();
 	const router = useRouter();
 	const [showDatePicker, setShowDatePicker] = useState(false);
+	const { createHabit, loading } = useHabitCreate();
 
 	const habitData = JSON.parse(params.habit as string);
 
@@ -62,20 +64,9 @@ const HabitDetailsScreen = () => {
 			frequency_type: frequency.type,
 			frequency_value: frequency.value || 1,
 			start_date: startDate.toISOString(),
-			// Add any other fields as necessary
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
-			user_id: "YOUR_USER_ID", // Replace with actual user ID
 		};
 
-		// Insert the habit data into the Supabase database
-		const { data: insertedData, error } = await supabase
-			.from("habits")
-			.insert([habitData]);
-
-		if (error) {
-			throw new Error(error.message);
-		}
+		const insertedData = await createHabit(habitData);
 
 		console.log("Habit saved successfully:", insertedData);
 		// ここでデータを保存するAPIを呼び出す
