@@ -20,6 +20,7 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as z from "zod";
+import { supabase } from "../../libs/supabase";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -27,7 +28,6 @@ type HabitStatus = "unchecked" | "achieved" | "not_achieved";
 interface Habit {
 	id: string;
 	name: string;
-	color: string;
 	icon: string;
 }
 
@@ -72,13 +72,18 @@ const HomeScreen = () => {
 		fetchHabitsAndLogs();
 	}, []);
 
-	const fetchHabitsAndLogs = () => {
+	const fetchHabitsAndLogs = async () => {
 		// Placeholder for API call
-		const fetchedHabits: Habit[] = [
-			{ id: "1", name: "読書", color: "#FF5733", icon: "book" },
-			{ id: "2", name: "運動", color: "#33FF57", icon: "fitness-center" },
-		];
-		setHabits(fetchedHabits);
+		const { data: fetchedHabits, error } = await supabase
+			.from("habit_templates")
+			.select("id, name, icon");
+
+		if (error) {
+			console.error("Error fetching habits:", error);
+			return;
+		}
+
+		setHabits(fetchedHabits || []);
 
 		// Initialize all past days as 'unchecked'
 		const newWeeklyLogs: WeeklyLogs = {};
@@ -325,7 +330,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 	return (
 		<ListItem containerStyle={styles.habitRow}>
 			<ListItem.Content style={styles.habitNameColumn}>
-				<Icon name={habit.icon} color={habit.color} />
+				<Icon name={habit.icon} />
 				<Text style={styles.habitName}>{habit.name}</Text>
 			</ListItem.Content>
 			{[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
@@ -381,6 +386,8 @@ const styles = StyleSheet.create({
 	},
 	monthText: {
 		textAlign: "center",
+		paddingHorizontal: 20,
+		paddingVertical: 0,
 	},
 	headerRow: {
 		backgroundColor: "#e0e0e0",

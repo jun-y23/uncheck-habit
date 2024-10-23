@@ -1,6 +1,6 @@
-import { Button, Input, ListItem, Text } from "@rneui/themed";
+import { Button, Icon, Input, ListItem, Text } from "@rneui/themed";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	FlatList,
 	ScrollView,
@@ -8,49 +8,36 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
+import { supabase } from "../libs/supabase";
 
-// 事前定義された習慣のリスト
-const predefinedHabits = [
-	{
-		id: "1",
-		name: "禁煙",
-		icon: "🚭",
-		defaultFrequency: "daily",
-		defaultEffect: { type: "money", unit: "円" },
-	},
-	{
-		id: "2",
-		name: "ランニング",
-		icon: "🏃",
-		defaultFrequency: "daily",
-		defaultEffect: { type: "distance", unit: "km" },
-	},
-	{
-		id: "3",
-		name: "読書",
-		icon: "📚",
-		defaultFrequency: "daily",
-		defaultEffect: { type: "duration", unit: "分" },
-	},
-	{
-		id: "4",
-		name: "瞑想",
-		icon: "🧘",
-		defaultFrequency: "daily",
-		defaultEffect: { type: "duration", unit: "分" },
-	},
-	{
-		id: "5",
-		name: "早起き",
-		icon: "⏰",
-		defaultFrequency: "daily",
-		defaultEffect: { type: "time", unit: "" },
-	},
-];
+interface Habit {
+	id: string;
+	name: string;
+	icon: string;
+}
 
 const HabitSelectionScreen = () => {
 	const [customHabit, setCustomHabit] = useState("");
+	const [habitTemplates, setHabitTemplates] = useState<Habit[]>([]);
 	const router = useRouter();
+
+	useEffect(() => {
+		fetchHabitsAndLogs();
+	}, []);
+
+	const fetchHabitsAndLogs = async () => {
+		// Placeholder for API call
+		const { data: fetchedHabits, error } = await supabase
+			.from("habit_templates")
+			.select("id, name, icon");
+
+		if (error) {
+			console.error("Error fetching habits:", error);
+			return;
+		}
+
+		setHabitTemplates(fetchedHabits);
+	};
 
 	const handleHabitSelect = (habit) => {
 		router.push({
@@ -67,7 +54,7 @@ const HabitSelectionScreen = () => {
 
 	const renderHabitItem = ({ item }) => (
 		<ListItem bottomDivider onPress={() => handleHabitSelect(item)}>
-			<Text style={styles.habitIcon}>{item.icon}</Text>
+			<Icon name={item.icon} />
 			<ListItem.Content>
 				<ListItem.Title>{item.name}</ListItem.Title>
 			</ListItem.Content>
@@ -92,7 +79,7 @@ const HabitSelectionScreen = () => {
 			/>
 			<Text style={styles.subtitle}>よくある習慣</Text>
 			<FlatList
-				data={predefinedHabits}
+				data={habitTemplates}
 				renderItem={renderHabitItem}
 				keyExtractor={(item) => item.id}
 			/>

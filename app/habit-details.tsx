@@ -13,6 +13,7 @@ import {
 	View,
 } from "react-native";
 import * as z from "zod";
+import { supabase } from "../libs/supabase";
 
 const habitSchema = z.object({
 	name: z
@@ -54,8 +55,29 @@ const HabitDetailsScreen = () => {
 		},
 	});
 
-	const onSubmit = (data: HabitFormData) => {
-		console.log(data);
+	const onSubmit = async (data: HabitFormData) => {
+		const { name, frequency, startDate } = data;
+		const habitData = {
+			name,
+			frequency_type: frequency.type,
+			frequency_value: frequency.value || 1,
+			start_date: startDate.toISOString(),
+			// Add any other fields as necessary
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			user_id: "YOUR_USER_ID", // Replace with actual user ID
+		};
+
+		// Insert the habit data into the Supabase database
+		const { data: insertedData, error } = await supabase
+			.from("habits")
+			.insert([habitData]);
+
+		if (error) {
+			throw new Error(error.message);
+		}
+
+		console.log("Habit saved successfully:", insertedData);
 		// ここでデータを保存するAPIを呼び出す
 		router.push("/"); // ホーム画面やハビットリスト画面に遷移
 	};
