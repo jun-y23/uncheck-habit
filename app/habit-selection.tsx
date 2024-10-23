@@ -1,20 +1,8 @@
 import { Button, Icon, Input, ListItem, Text } from "@rneui/themed";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
-import {
-	FlatList,
-	ScrollView,
-	StyleSheet,
-	TouchableOpacity,
-	View,
-} from "react-native";
+import React, { useState } from "react";
+import { FlatList, StyleSheet, View } from "react-native";
 import { useHabitTemplates } from "../hooks/useHabitTemplates";
-
-interface Habit {
-	id: string;
-	name: string;
-	icon: string;
-}
 
 const HabitSelectionScreen = () => {
 	const [customHabit, setCustomHabit] = useState("");
