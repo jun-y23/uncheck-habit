@@ -7,6 +7,8 @@ import { useCallback, useEffect, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CalendarOverlay from "../../components/CalendarOverlay";
+import type { HabitLogFormData } from "../../components/CalendarOverlay";
 import { supabase } from "../../libs/supabase";
 import type { Habit } from "../../types/type";
 
@@ -27,6 +29,9 @@ const HomeScreen = () => {
 	const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+	const [selectedHabit, setSelectedHabit] = useState<HabitLogFormData | null>(
+		null,
+	);
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -39,7 +44,6 @@ const HomeScreen = () => {
 			.select("id, name, icon");
 
 		if (error) {
-			console.error("Error fetching habits:", error);
 			return;
 		}
 
@@ -54,7 +58,8 @@ const HomeScreen = () => {
 		setCurrentWeek((prevWeek) => addWeeks(prevWeek, 1));
 	};
 
-	const openOverlay = () => {
+	const openOverlay = (habit: HabitLogFormData) => {
+		setSelectedHabit(habit);
 		setIsOverlayVisible(true);
 	};
 
@@ -86,6 +91,11 @@ const HomeScreen = () => {
 					/>
 				</View>
 			</SafeAreaView>
+			<CalendarOverlay
+				isVisible={isOverlayVisible}
+				initailData={selectedHabit}
+				onClose={closeOverlay}
+			/>
 		</GestureHandlerRootView>
 	);
 };
@@ -131,7 +141,7 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 interface HabitListProps {
 	habits: Habit[];
 	currentWeek: Date;
-	openBottomSheet: (habit: Habit, date: string) => void;
+	openBottomSheet: (habit: HabitLogFormData) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
@@ -166,7 +176,7 @@ const HabitList = (props: HabitListProps) => {
 					<HabitRow
 						habit={item}
 						currentWeek={currentWeek}
-						openBottomSheet={openBottomSheet}
+						openClickCell={openBottomSheet}
 					/>
 				)}
 			/>
@@ -177,13 +187,13 @@ const HabitList = (props: HabitListProps) => {
 interface HabitRowProps {
 	habit: Habit;
 	currentWeek: Date;
-	openBottomSheet: (habit: Habit, date: string) => void;
+	openClickCell: (habit: HabitLogFormData) => void;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
 	habit,
 	currentWeek,
-	openBottomSheet,
+	openClickCell,
 }) => {
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 
@@ -196,6 +206,14 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			default:
 				return "#EBEDF0";
 		}
+	};
+
+	const handleOnPress = (date: string, status: string) => {
+		openClickCell({
+			habitID: habit.id,
+			date: new Date(date),
+			status,
+		});
 	};
 
 	return (
@@ -226,7 +244,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 					<TouchableOpacity
 						key={dayOffset}
 						style={[styles.cell, styles.dateCell]}
-						onPress={() => openBottomSheet(habit, date)}
+						onPress={() => handleOnPress(date, status)}
 					>
 						<View
 							style={[

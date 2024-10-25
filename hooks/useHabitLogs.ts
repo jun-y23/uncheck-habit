@@ -4,7 +4,7 @@ import type { Database } from "../types/schema";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
 
-export function useHabitLogs(habitId: string) {
+export function useHabitLogs(habitId: string | undefined) {
   const [logs, setLogs] = useState<HabitLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +16,7 @@ export function useHabitLogs(habitId: string) {
   }, [habitId]);
 
   async function fetchLogs() {
+    if (!habitId) return;
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -33,17 +34,18 @@ export function useHabitLogs(habitId: string) {
     }
   }
 
-  async function toggleStatus(date: string) {
+  async function toggleStatus(
+    date: string,
+    status: "achieved" | "not_achieved" | "unchecked",
+    notes: string,
+  ) {
     try {
       const existingLog = logs.find((log) => log.date === date);
 
       if (existingLog) {
-        const newStatus = existingLog.status === "achieved"
-          ? "not_achieved"
-          : "achieved";
         const { error } = await supabase
           .from("habit_logs")
-          .update({ status: newStatus })
+          .update({ status, notes }) // Update status and memo
           .eq("id", existingLog.id);
 
         if (error) throw error;
@@ -51,9 +53,10 @@ export function useHabitLogs(habitId: string) {
         const { error } = await supabase
           .from("habit_logs")
           .insert([{
-            habit_id: habitId,
+            habit_id: habitId || "", // Ensure habitId is not undefined
             date,
-            status: "achieved",
+            status,
+            notes,
           }]);
 
         if (error) throw error;

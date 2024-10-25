@@ -18,38 +18,39 @@ import Animated, {
 	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
+import { useHabitLogs } from "../hooks/useHabitLogs";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
 
 const habitLogSchema = z.object({
+	habitID: z.string(),
 	status: z.enum(["unchecked", "achieved", "not_achieved"]),
 	date: z.date(),
-	memo: z.string().max(200, "メモは200文字以内で入力してください").optional(),
+	notes: z.string().max(200, "メモは200文字以内で入力してください").optional(),
 });
 
-type HabitLogFormData = z.infer<typeof habitLogSchema>;
+export type HabitLogFormData = z.infer<typeof habitLogSchema>;
 
 interface CalendarOverlayProps {
 	isVisible: boolean;
-	initailData: HabitLogFormData;
+	initailData: HabitLogFormData | null;
 	onClose: () => void;
 }
 
 const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	isVisible,
+	initailData,
 	onClose,
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
 
-	const initialData = {
-		status: "unchecked",
-	} as const;
+	const { toggleStatus } = useHabitLogs(initailData?.habitID);
 
 	const { control, handleSubmit, reset } = useForm<HabitLogFormData>({
 		resolver: zodResolver(habitLogSchema),
 		defaultValues: {
-			status: initialData.status === "unchecked" ? "not_achieved" : "achieved",
+			...initailData,
 		},
 	});
 
@@ -90,12 +91,11 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			}
 		},
 	});
-	const onSubmit = useCallback(
-		(data: HabitLogFormData) => {
-			handleClose();
-		},
-		[handleClose],
-	);
+
+	const onSubmit = async (data: HabitLogFormData) => {
+		await toggleStatus(data.date.toISOString(), data.status, data.notes ?? "");
+		handleClose();
+	};
 
 	return (
 		<View
@@ -139,7 +139,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 					/>
 					<Controller
 						control={control}
-						name="memo"
+						name="notes"
 						render={({
 							field: { onChange, onBlur, value },
 							fieldState: { error },
