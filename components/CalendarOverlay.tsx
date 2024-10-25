@@ -24,6 +24,7 @@ const DRAG_THRESHOLD = 50;
 
 const habitLogSchema = z.object({
 	status: z.enum(["unchecked", "achieved", "not_achieved"]),
+	date: z.date(),
 	memo: z.string().max(200, "メモは200文字以内で入力してください").optional(),
 });
 
@@ -31,18 +32,19 @@ type HabitLogFormData = z.infer<typeof habitLogSchema>;
 
 interface CalendarOverlayProps {
 	isVisible: boolean;
+	initailData: HabitLogFormData;
 	onClose: () => void;
-	onSave: (data: HabitLogFormData) => void;
-	initialData: HabitLogFormData;
 }
 
 const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	isVisible,
 	onClose,
-	onSave,
-	initialData,
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
+
+	const initialData = {
+		status: "unchecked",
+	} as const;
 
 	const { control, handleSubmit, reset } = useForm<HabitLogFormData>({
 		resolver: zodResolver(habitLogSchema),
@@ -90,10 +92,9 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 	const onSubmit = useCallback(
 		(data: HabitLogFormData) => {
-			onSave(data);
 			handleClose();
 		},
-		[onSave, handleClose],
+		[handleClose],
 	);
 
 	return (

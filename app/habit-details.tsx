@@ -66,9 +66,8 @@ const HabitDetailsScreen = () => {
 			start_date: startDate.toISOString(),
 		};
 
-		const insertedData = await createHabit(habitData);
+		await createHabit(habitData);
 
-		console.log("Habit saved successfully:", insertedData);
 		// ここでデータを保存するAPIを呼び出す
 		router.push("/"); // ホーム画面やハビットリスト画面に遷移
 	};

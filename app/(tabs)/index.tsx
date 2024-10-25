@@ -1,35 +1,17 @@
-import CalendarOverlay from "@/components/CalendarOverlay";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Icon, Input, ListItem, Text } from "@rneui/themed";
-import { BottomSheet } from "@rneui/themed";
-import {
-	addDays,
-	addWeeks,
-	format,
-	isFuture,
-	isToday,
-	startOfWeek,
-	subWeeks,
-} from "date-fns";
+import { addDays, addWeeks, format, startOfWeek, subWeeks } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as z from "zod";
 import { supabase } from "../../libs/supabase";
+import type { Habit } from "../../types/type";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
-
-interface Habit {
-	id: string;
-	name: string;
-	icon: string;
-}
 
 interface WeeklyLog {
 	[date: string]: HabitStatus;
@@ -39,34 +21,12 @@ interface WeeklyLogs {
 	[habitId: string]: WeeklyLog;
 }
 
-const habitLogSchema = z.object({
-	status: z.enum(["unchecked", "achieved", "not_achieved"]),
-	memo: z.string().max(200, "メモは200文字以内で入力してください"),
-});
-
-type HabitLogFormData = z.infer<typeof habitLogSchema>;
-
 // HomeScreen Component
 const HomeScreen = () => {
 	const router = useRouter();
 	const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
-	const [weeklyLogs, setWeeklyLogs] = useState<WeeklyLogs>({});
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-	const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
-	const [selectedDate, setSelectedDate] = useState<string>("");
-	const [initialFormData, setInitialFormData] = useState<HabitLogFormData>({
-		status: "unchecked",
-		memo: "",
-	});
-
-	const { control, handleSubmit, reset, setValue } = useForm<HabitLogFormData>({
-		resolver: zodResolver(habitLogSchema),
-		defaultValues: {
-			status: "not_achieved",
-			memo: "",
-		},
-	});
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -84,60 +44,6 @@ const HomeScreen = () => {
 		}
 
 		setHabits(fetchedHabits || []);
-
-		// Initialize all past days as 'unchecked'
-		const newWeeklyLogs: WeeklyLogs = {};
-		for (const habit of fetchedHabits) {
-			newWeeklyLogs[habit.id] = {};
-			for (let i = 0; i < 7; i++) {
-				const date = format(
-					addDays(startOfWeek(currentWeek, { weekStartsOn: 1 }), i),
-					"yyyy-MM-dd",
-				);
-				if (!isFuture(new Date(date)) && !isToday(new Date(date))) {
-					newWeeklyLogs[habit.id][date] = "unchecked";
-				}
-			}
-		}
-		setWeeklyLogs(newWeeklyLogs);
-	};
-
-	const toggleHabitStatus = (habitId: string, date: string) => {
-		setWeeklyLogs((prevLogs) => {
-			const habitLog = prevLogs[habitId] || {};
-			const currentStatus = habitLog[date] || "unchecked";
-			let newStatus: HabitStatus;
-			switch (currentStatus) {
-				case "unchecked":
-					newStatus = "achieved";
-					break;
-				case "achieved":
-					newStatus = "not_achieved";
-					break;
-				case "not_achieved":
-					newStatus = "unchecked";
-					break;
-				default:
-					newStatus = "unchecked";
-			}
-			return {
-				...prevLogs,
-				[habitId]: {
-					...habitLog,
-					[date]: newStatus,
-				},
-			};
-		});
-	};
-
-	const resetHabitStatus = (habitId: string, date: string) => {
-		setWeeklyLogs((prevLogs) => ({
-			...prevLogs,
-			[habitId]: {
-				...prevLogs[habitId],
-				[date]: "unchecked",
-			},
-		}));
 	};
 
 	const goToPreviousWeek = () => {
@@ -148,39 +54,13 @@ const HomeScreen = () => {
 		setCurrentWeek((prevWeek) => addWeeks(prevWeek, 1));
 	};
 
-	const openOverlay = useCallback(
-		(habit: Habit, date: string) => {
-			const habitLog = weeklyLogs[habit.id] || {};
-			const currentEntry = habitLog[date] || { status: "unchecked", memo: "" };
-			setSelectedHabit(habit);
-			setSelectedDate(date);
-			setInitialFormData({
-				status: currentEntry.status,
-				memo: currentEntry.memo,
-			});
-			setIsOverlayVisible(true);
-		},
-		[weeklyLogs],
-	);
+	const openOverlay = () => {
+		setIsOverlayVisible(true);
+	};
 
 	const closeOverlay = useCallback(() => {
 		setIsOverlayVisible(false);
 	}, []);
-
-	const saveHabitLog = useCallback(
-		(data: HabitLogFormData) => {
-			if (selectedHabit && selectedDate) {
-				setWeeklyLogs((prevLogs) => ({
-					...prevLogs,
-					[selectedHabit.id]: {
-						...prevLogs[selectedHabit.id],
-						[selectedDate]: { status: data.status, memo: data.memo },
-					},
-				}));
-			}
-		},
-		[selectedHabit, selectedDate],
-	);
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
@@ -193,7 +73,6 @@ const HomeScreen = () => {
 					/>
 					<HabitList
 						habits={habits}
-						weeklyLogs={weeklyLogs}
 						currentWeek={currentWeek}
 						openBottomSheet={openOverlay}
 					/>
@@ -206,13 +85,6 @@ const HomeScreen = () => {
 						buttonStyle={styles.addButton}
 					/>
 				</View>
-
-				<CalendarOverlay
-					isVisible={isOverlayVisible}
-					onClose={closeOverlay}
-					onSave={saveHabitLog}
-					initialData={initialFormData}
-				/>
 			</SafeAreaView>
 		</GestureHandlerRootView>
 	);
@@ -258,39 +130,41 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 // HabitList Component
 interface HabitListProps {
 	habits: Habit[];
-	weeklyLogs: WeeklyLogs;
 	currentWeek: Date;
 	openBottomSheet: (habit: Habit, date: string) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
-	const { habits, weeklyLogs, currentWeek, openBottomSheet } = props;
-
+	const { habits, currentWeek, openBottomSheet } = props;
 	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
 	const weekDays = ["月", "火", "水", "木", "金", "土", "日"];
 
+	// ヘッダー行を関数として定義
+	const renderHeader = () => (
+		<View style={styles.headerRow}>
+			<View style={[styles.cell, styles.habitNameCell]}>
+				<Text style={styles.headerText}>習慣</Text>
+			</View>
+			{weekDays.map((day, index) => (
+				<View key={`header-${day}`} style={[styles.cell, styles.dateCell]}>
+					<Text style={styles.dayText}>{day}</Text>
+					<Text style={styles.dateText}>
+						{format(addDays(startDate, index), "d")}
+					</Text>
+				</View>
+			))}
+		</View>
+	);
+
 	return (
-		<View>
-			<ListItem containerStyle={styles.headerRow}>
-				<ListItem.Content style={styles.habitNameColumn}>
-					<Text style={styles.headerText}>習慣</Text>
-				</ListItem.Content>
-				{weekDays.map((day, index) => (
-					<View key={`list-day-${day}`} style={styles.dateColumn}>
-						<Text style={styles.dayText}>{day}</Text>
-						<Text style={styles.dateText}>
-							{format(addDays(startDate, index), "d")}
-						</Text>
-					</View>
-				))}
-			</ListItem>
+		<View style={styles.listContainer}>
+			{renderHeader()}
 			<FlatList
 				data={habits}
 				keyExtractor={(item) => item.id}
 				renderItem={({ item }) => (
 					<HabitRow
 						habit={item}
-						weeklyLog={weeklyLogs[item.id] || {}}
 						currentWeek={currentWeek}
 						openBottomSheet={openBottomSheet}
 					/>
@@ -300,17 +174,14 @@ const HabitList = (props: HabitListProps) => {
 	);
 };
 
-// HabitRow Component
 interface HabitRowProps {
 	habit: Habit;
-	weeklyLog: WeeklyLog;
 	currentWeek: Date;
 	openBottomSheet: (habit: Habit, date: string) => void;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
 	habit,
-	weeklyLog,
 	currentWeek,
 	openBottomSheet,
 }) => {
@@ -319,39 +190,54 @@ const HabitRow: React.FC<HabitRowProps> = ({
 	const getCellColor = (status: HabitStatus): string => {
 		switch (status) {
 			case "achieved":
-				return habit.color; // 達成時は習慣の色
+				return "#00FF00";
 			case "not_achieved":
-				return "#ff7f7f"; // 未達成時は薄い赤色
+				return "#FF7F7F";
 			default:
-				return "#ebedf0"; // 未チェック時はGitHubの空セルの色
+				return "#EBEDF0";
 		}
 	};
 
 	return (
-		<ListItem containerStyle={styles.habitRow}>
-			<ListItem.Content style={styles.habitNameColumn}>
-				<Icon name={habit.icon} />
-				<Text style={styles.habitName}>{habit.name}</Text>
-			</ListItem.Content>
+		<View style={styles.habitRow}>
+			{/* 習慣名セル */}
+			<View style={[styles.cell, styles.habitNameCell]}>
+				<View style={styles.habitContainer}>
+					{habit.icon && (
+						<Icon
+							name={habit.icon}
+							size={16}
+							style={styles.icon}
+							containerStyle={styles.iconContainer}
+						/>
+					)}
+					<Text style={styles.habitName} numberOfLines={1}>
+						{habit.name}
+					</Text>
+				</View>
+			</View>
+
+			{/* チェックセル */}
 			{[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
 				const date = format(addDays(startDate, dayOffset), "yyyy-MM-dd");
-				const status = weeklyLog[date] || "unchecked";
+				const status = "unchecked";
 
 				return (
 					<TouchableOpacity
 						key={dayOffset}
-						style={styles.dateColumn}
-						onPress={() => {
-							openBottomSheet(habit, date);
-						}}
+						style={[styles.cell, styles.dateCell]}
+						onPress={() => openBottomSheet(habit, date)}
 					>
 						<View
-							style={[styles.cell, { backgroundColor: getCellColor(status) }]}
+							style={[
+								styles.checkBox,
+								{ backgroundColor: getCellColor(status) },
+							]}
 						/>
 					</TouchableOpacity>
 				);
 			})}
-		</ListItem>
+		</View>
 	);
 };
 
@@ -389,40 +275,78 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 		paddingVertical: 0,
 	},
-	headerRow: {
-		backgroundColor: "#e0e0e0",
-		paddingVertical: 10,
+	listContainer: {
+		flex: 1,
+		backgroundColor: "white",
 	},
-	headerText: {
-		fontWeight: "bold",
+	headerRow: {
+		flexDirection: "row",
+		borderBottomWidth: 1,
+		borderBottomColor: "#E0E0E0",
+		backgroundColor: "white",
 	},
 	habitRow: {
-		paddingVertical: 10,
-		paddingHorizontal: 5,
+		flexDirection: "row",
+		borderBottomWidth: 1,
+		borderBottomColor: "#F0F0F0",
+		backgroundColor: "white",
 	},
-	habitNameColumn: {
-		flex: 2,
+	// 共通のセルスタイル
+	cell: {
+		height: 56,
+		justifyContent: "center",
+		paddingVertical: 8,
+	},
+	// 習慣名セル（固定幅）
+	habitNameCell: {
+		width: 90,
+		paddingLeft: 16,
+		paddingRight: 8,
+	},
+	// 日付セル（均等幅）
+	dateCell: {
+		flex: 1,
+		alignItems: "center",
+		minWidth: 40,
+	},
+	// ヘッダーテキスト
+	headerText: {
+		fontSize: 14,
+		fontWeight: "500",
+		color: "#666666",
+	},
+	dayText: {
+		fontSize: 12,
+		color: "#666666",
+		marginBottom: 2,
+	},
+	dateText: {
+		fontSize: 14,
+		fontWeight: "500",
+		color: "#333333",
+	},
+	// 習慣名エリア
+	habitContainer: {
 		flexDirection: "row",
 		alignItems: "center",
 	},
 	habitName: {
-		marginLeft: 10,
-	},
-	dateColumn: {
-		flex: 1,
-		aspectRatio: 1,
-		padding: 2,
-	},
-	dayText: {
-		fontSize: 12,
-	},
-	dateText: {
 		fontSize: 14,
-		fontWeight: "bold",
-	},
-	cell: {
 		flex: 1,
-		borderRadius: 2,
+		color: "#333333",
+	},
+	iconContainer: {
+		marginRight: 8,
+	},
+	icon: {
+		width: 16,
+		height: 16,
+	},
+	// チェックボックス
+	checkBox: {
+		width: 35,
+		height: 35,
+		borderRadius: 4,
 	},
 });
 
