@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input } from "@rneui/themed";
+import { Button, Input, Text } from "@rneui/themed";
 import type React from "react";
 import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -47,12 +47,17 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 
 	const { toggleStatus } = useHabitLogs(initailData?.habitID);
 
-	const { control, handleSubmit, reset } = useForm<HabitLogFormData>({
-		resolver: zodResolver(habitLogSchema),
-		defaultValues: {
-			...initailData,
+	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>(
+		{
+			resolver: zodResolver(habitLogSchema),
+			defaultValues: {
+				habitID: initailData?.habitID,
+				status: initailData?.status,
+				notes: initailData?.notes,
+			},
 		},
-	});
+	);
+	console.log(formState.errors);
 
 	useEffect(() => {
 		if (isVisible) {
@@ -93,6 +98,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 
 	const onSubmit = async (data: HabitLogFormData) => {
+		console.log("aaa");
 		await toggleStatus(data.date.toISOString(), data.status, data.notes ?? "");
 		handleClose();
 	};
@@ -111,6 +117,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			<PanGestureHandler onGestureEvent={gestureHandler}>
 				<Animated.View style={[styles.contentContainer, rStyle]}>
 					<View style={styles.handle} />
+					{/* <Text>{initailData?.date}</Text> */}
 					<Controller
 						control={control}
 						name="status"

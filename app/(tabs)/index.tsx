@@ -1,5 +1,13 @@
+import { useHabitLogs } from "@/hooks/useHabitLogs";
 import { Button, Icon, Input, ListItem, Text } from "@rneui/themed";
-import { addDays, addWeeks, format, startOfWeek, subWeeks } from "date-fns";
+import {
+	addDays,
+	addWeeks,
+	format,
+	startOfWeek,
+	subDays,
+	subWeeks,
+} from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
 import type React from "react";
@@ -26,7 +34,7 @@ interface WeeklyLogs {
 // HomeScreen Component
 const HomeScreen = () => {
 	const router = useRouter();
-	const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
+	const [currentDate, setCurrentDate] = useState<Date>(subDays(new Date(), 6));
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
 	const [selectedHabit, setSelectedHabit] = useState<HabitLogFormData | null>(
@@ -51,11 +59,11 @@ const HomeScreen = () => {
 	};
 
 	const goToPreviousWeek = () => {
-		setCurrentWeek((prevWeek) => subWeeks(prevWeek, 1));
+		setCurrentDate((prevDate) => subDays(prevDate, 6));
 	};
 
 	const goToNextWeek = () => {
-		setCurrentWeek((prevWeek) => addWeeks(prevWeek, 1));
+		setCurrentDate((prevDate) => addDays(prevDate, 6));
 	};
 
 	const openOverlay = (habit: HabitLogFormData) => {
@@ -72,13 +80,13 @@ const HomeScreen = () => {
 			<SafeAreaView style={styles.safeArea}>
 				<View style={styles.container}>
 					<WeeklyCalendarView
-						currentWeek={currentWeek}
+						currentDate={currentDate}
 						onPreviousWeek={goToPreviousWeek}
 						onNextWeek={goToNextWeek}
 					/>
 					<HabitList
 						habits={habits}
-						currentWeek={currentWeek}
+						startDate={currentDate}
 						openBottomSheet={openOverlay}
 					/>
 				</View>
@@ -102,13 +110,13 @@ const HomeScreen = () => {
 
 // WeeklyCalendarView Component
 interface WeeklyCalendarViewProps {
-	currentWeek: Date;
+	currentDate: Date;
 	onPreviousWeek: () => void;
 	onNextWeek: () => void;
 }
 
 const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
-	const { currentWeek, onPreviousWeek, onNextWeek } = props;
+	const { currentDate, onPreviousWeek, onNextWeek } = props;
 
 	return (
 		<View style={styles.calendarContainer}>
@@ -120,7 +128,7 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 				onPress={onPreviousWeek}
 			/>
 			<Text h4 style={styles.monthText}>
-				{format(currentWeek, "yyyy年M月", { locale: ja })}
+				{format(currentDate, "yyyy年M月", { locale: ja })}
 			</Text>
 			<Button
 				icon={
@@ -140,29 +148,34 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 // HabitList Component
 interface HabitListProps {
 	habits: Habit[];
-	currentWeek: Date;
+	startDate: Date;
 	openBottomSheet: (habit: HabitLogFormData) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
-	const { habits, currentWeek, openBottomSheet } = props;
-	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
-	const weekDays = ["月", "火", "水", "木", "金", "土", "日"];
+	const { habits, startDate, openBottomSheet } = props;
 
-	// ヘッダー行を関数として定義
+	const weekDays = Array.from({ length: 7 }, (_, index) => {
+		const date = addDays(startDate, index);
+		return format(date, "d(E)", { locale: ja });
+	});
+
 	const renderHeader = () => (
 		<View style={styles.headerRow}>
 			<View style={[styles.cell, styles.habitNameCell]}>
 				<Text style={styles.headerText}>習慣</Text>
 			</View>
-			{weekDays.map((day, index) => (
-				<View key={`header-${day}`} style={[styles.cell, styles.dateCell]}>
-					<Text style={styles.dayText}>{day}</Text>
-					<Text style={styles.dateText}>
-						{format(addDays(startDate, index), "d")}
-					</Text>
-				</View>
-			))}
+			{weekDays.map((day, index) => {
+				const [date, dayOfWeek] = day.split("("); // Split the day string into date and day of the week
+				return (
+					<View key={`header-${day}`} style={[styles.cell, styles.dateCell]}>
+						<Text style={styles.dayText}>{date.trim()}</Text>
+						<Text style={styles.dateText}>
+							{dayOfWeek.replace(")", "").trim()}
+						</Text>
+					</View>
+				);
+			})}
 		</View>
 	);
 
@@ -175,7 +188,7 @@ const HabitList = (props: HabitListProps) => {
 				renderItem={({ item }) => (
 					<HabitRow
 						habit={item}
-						currentWeek={currentWeek}
+						currentDate={startDate}
 						openClickCell={openBottomSheet}
 					/>
 				)}
@@ -186,16 +199,30 @@ const HabitList = (props: HabitListProps) => {
 
 interface HabitRowProps {
 	habit: Habit;
-	currentWeek: Date;
+	currentDate: Date;
 	openClickCell: (habit: HabitLogFormData) => void;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
 	habit,
-	currentWeek,
+	currentDate,
 	openClickCell,
 }) => {
-	const startDate = startOfWeek(currentWeek, { weekStartsOn: 1 });
+	const [logs, setLogs] = useState<{ [key: string]: any }>({});
+
+	const startDate = currentDate;
+	const { fetchLogs, loading, error } = useHabitLogs(habit.id);
+
+	useEffect(() => {
+		const loadLogs = async () => {
+			const logsData = await fetchLogs(habit.id, currentDate);
+			if (logsData) {
+				setLogs(logsData);
+			}
+		};
+
+		loadLogs();
+	}, [habit.id, currentDate, fetchLogs]);
 
 	const getCellColor = (status: HabitStatus): string => {
 		switch (status) {
@@ -208,7 +235,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 		}
 	};
 
-	const handleOnPress = (date: string, status: string) => {
+	const handleOnPress = (date: string, status: HabitStatus) => {
 		openClickCell({
 			habitID: habit.id,
 			date: new Date(date),
@@ -236,25 +263,25 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			</View>
 
 			{/* チェックセル */}
-			{[0, 1, 2, 3, 4, 5, 6].map((dayOffset) => {
-				const date = format(addDays(startDate, dayOffset), "yyyy-MM-dd");
-				const status = "unchecked";
-
-				return (
-					<TouchableOpacity
-						key={dayOffset}
-						style={[styles.cell, styles.dateCell]}
-						onPress={() => handleOnPress(date, status)}
-					>
-						<View
-							style={[
-								styles.checkBox,
-								{ backgroundColor: getCellColor(status) },
-							]}
-						/>
-					</TouchableOpacity>
-				);
-			})}
+			{!loading &&
+				logs &&
+				logs.length > 0 &&
+				logs?.map((log, index) => {
+					return (
+						<TouchableOpacity
+							key={`${index}`}
+							style={[styles.cell, styles.dateCell]}
+							onPress={() => handleOnPress(log.date, log.status)}
+						>
+							<View
+								style={[
+									styles.checkBox,
+									{ backgroundColor: getCellColor(log.status) },
+								]}
+							/>
+						</TouchableOpacity>
+					);
+				})}
 		</View>
 	);
 };
