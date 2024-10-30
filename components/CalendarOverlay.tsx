@@ -19,6 +19,10 @@ import Animated, {
 } from "react-native-reanimated";
 import * as z from "zod";
 import { useHabitLogs } from "../hooks/useHabitLogs";
+import {
+	format,
+} from "date-fns";
+import { ja } from "date-fns/locale";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
@@ -98,7 +102,6 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 
 	const onSubmit = async (data: HabitLogFormData) => {
-		console.log("aaa");
 		await toggleStatus(data.date.toISOString(), data.status, data.notes ?? "");
 		handleClose();
 	};
@@ -117,7 +120,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			<PanGestureHandler onGestureEvent={gestureHandler}>
 				<Animated.View style={[styles.contentContainer, rStyle]}>
 					<View style={styles.handle} />
-					{/* <Text>{initailData?.date}</Text> */}
+					<Text h4>{initailData?.date ? format(initailData.date, "M月d日（E）", { locale: ja }) : ""}</Text>
 					<Controller
 						control={control}
 						name="status"
