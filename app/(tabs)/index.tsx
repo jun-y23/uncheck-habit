@@ -1,12 +1,9 @@
 import { useHabitLogs } from "@/hooks/useHabitLogs";
-import { Button, Icon, Input, ListItem, Text } from "@rneui/themed";
+import { Button, Icon,  Text } from "@rneui/themed";
 import {
 	addDays,
-	addWeeks,
 	format,
-	startOfWeek,
 	subDays,
-	subWeeks,
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
