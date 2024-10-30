@@ -62,10 +62,6 @@ const HomeScreen = () => {
 		setCurrentDate((prevDate) => subDays(prevDate, 6));
 	};
 
-	const goToNextWeek = () => {
-		setCurrentDate((prevDate) => addDays(prevDate, 6));
-	};
-
 	const openOverlay = (habit: HabitLogFormData) => {
 		setSelectedHabit(habit);
 		setIsOverlayVisible(true);
@@ -82,7 +78,6 @@ const HomeScreen = () => {
 					<WeeklyCalendarView
 						currentDate={currentDate}
 						onPreviousWeek={goToPreviousWeek}
-						onNextWeek={goToNextWeek}
 					/>
 					<HabitList
 						habits={habits}
@@ -112,11 +107,10 @@ const HomeScreen = () => {
 interface WeeklyCalendarViewProps {
 	currentDate: Date;
 	onPreviousWeek: () => void;
-	onNextWeek: () => void;
 }
 
 const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
-	const { currentDate, onPreviousWeek, onNextWeek } = props;
+	const { currentDate, onPreviousWeek} = props;
 
 	return (
 		<View style={styles.calendarContainer}>
@@ -130,17 +124,6 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 			<Text h4 style={styles.monthText}>
 				{format(currentDate, "yyyy年M月", { locale: ja })}
 			</Text>
-			<Button
-				icon={
-					<Icon
-						name="chevron-right"
-						type="material-community"
-						color="#000000"
-					/>
-				}
-				type="clear"
-				onPress={onNextWeek}
-			/>
 		</View>
 	);
 };
@@ -309,7 +292,7 @@ const styles = StyleSheet.create({
 	},
 	calendarContainer: {
 		flexDirection: "row",
-		justifyContent: "space-between",
+		justifyContent: "center",
 		alignItems: "center",
 		backgroundColor: "white",
 		padding: 10,
