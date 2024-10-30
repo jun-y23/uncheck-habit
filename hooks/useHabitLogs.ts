@@ -1,10 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 import type { Database } from "../types/schema";
-import { format, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { addDays, endOfWeek, format, startOfWeek } from "date-fns";
 import type { DateRange } from "@/types/type";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
+
+interface ToggleStatusProps {
+	logID?: string;
+	habitID: string;
+	date: Date;
+	status: "achieved" | "not_achieved" | "unchecked";
+	notes: string;
+}
 
 export function useHabitLogs(habitId: string | undefined) {
 	const [loading, setLoading] = useState(true);
@@ -31,7 +39,7 @@ export function useHabitLogs(habitId: string | undefined) {
 					.select(`
           id,
           habit_id,
-          date,
+					date,
           status,
           notes
         `)
@@ -48,7 +56,9 @@ export function useHabitLogs(habitId: string | undefined) {
 					{ length: 7 },
 					(_, index) => {
 						const date = format(addDays(startDate, index), "yyyy-MM-dd");
-						const log = data?.find((log) => log.date === date);
+						const log = data?.find((log) =>
+							format(new Date(log.date), "yyyy-MM-dd") === date
+						);
 
 						return (
 							log || {
@@ -75,27 +85,21 @@ export function useHabitLogs(habitId: string | undefined) {
 		[getDateRange],
 	);
 
-	async function toggleStatus(
-		date: string,
-		status: "achieved" | "not_achieved" | "unchecked",
-		notes: string,
-	) {
-		console.log(date);
+	async function toggleStatus(props: ToggleStatusProps) {
+		const { logID, habitID, date, status, notes } = props;
 		try {
-			const existingLog = logs.find((log) => log.date === date);
-
-			if (existingLog) {
+			if (logID) {
 				const { error } = await supabase
 					.from("habit_logs")
-					.update({ status, notes }) // Update status and memo
-					.eq("id", existingLog.id);
+					.update({ status, notes })
+					.eq("id", logID);
 
 				if (error) throw error;
 			} else {
 				const { error } = await supabase.from("habit_logs").insert([
 					{
-						habit_id: habitId || "", // Ensure habitId is not undefined
-						date,
+						habit_id: habitID,
+						date: date.toDateString(),
 						status,
 						notes,
 					},

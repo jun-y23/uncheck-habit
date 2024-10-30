@@ -13,7 +13,7 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarOverlay from "../../components/CalendarOverlay";
-import type { HabitLogFormData } from "../../components/CalendarOverlay";
+import type { HabitLogData } from "../../components/CalendarOverlay";
 import { supabase } from "../../libs/supabase";
 import type { Habit } from "../../types/type";
 
@@ -34,7 +34,7 @@ const HomeScreen = () => {
 	const [currentDate, setCurrentDate] = useState<Date>(subDays(new Date(), 6));
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-	const [selectedHabit, setSelectedHabit] = useState<HabitLogFormData | null>(
+	const [selectedHabit, setSelectedHabit] = useState<HabitLogData | null>(
 		null,
 	);
 
@@ -59,7 +59,7 @@ const HomeScreen = () => {
 		setCurrentDate((prevDate) => subDays(prevDate, 6));
 	};
 
-	const openOverlay = (habit: HabitLogFormData) => {
+	const openOverlay = (habit: HabitLogData) => {
 		setSelectedHabit(habit);
 		setIsOverlayVisible(true);
 	};
@@ -91,11 +91,11 @@ const HomeScreen = () => {
 					/>
 				</View>
 			</SafeAreaView>
-			<CalendarOverlay
-				isVisible={isOverlayVisible}
-				initailData={selectedHabit}
-				onClose={closeOverlay}
-			/>
+				<CalendarOverlay
+					isVisible={isOverlayVisible}
+					initailData={selectedHabit}
+					onClose={closeOverlay}
+				/>
 		</GestureHandlerRootView>
 	);
 };
@@ -129,7 +129,7 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 interface HabitListProps {
 	habits: Habit[];
 	startDate: Date;
-	openBottomSheet: (habit: HabitLogFormData) => void;
+	openBottomSheet: (habit: HabitLogData) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
@@ -180,7 +180,7 @@ const HabitList = (props: HabitListProps) => {
 interface HabitRowProps {
 	habit: Habit;
 	currentDate: Date;
-	openClickCell: (habit: HabitLogFormData) => void;
+	openClickCell: (habit: HabitLogData) => void;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
@@ -215,11 +215,12 @@ const HabitRow: React.FC<HabitRowProps> = ({
 		}
 	};
 
-	const handleOnPress = (date: string, status: HabitStatus) => {
+	const handleOnPress = (date: string, status: HabitStatus, notes: string) => {
 		openClickCell({
 			habitID: habit.id,
 			date: new Date(date),
 			status,
+			notes, // Add notes to the data passed to openClickCell
 		});
 	};
 
@@ -251,7 +252,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 						<TouchableOpacity
 							key={`${index}`}
 							style={[styles.cell, styles.dateCell]}
-							onPress={() => handleOnPress(log.date, log.status)}
+							onPress={() => handleOnPress(log.date, log.status, log.notes)} // Pass notes to handleOnPress
 						>
 							<View
 								style={[

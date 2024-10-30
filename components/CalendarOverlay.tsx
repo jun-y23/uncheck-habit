@@ -28,17 +28,21 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
 
 const habitLogSchema = z.object({
+	logID: z.string().optional(),
 	habitID: z.string(),
 	status: z.enum(["unchecked", "achieved", "not_achieved"]),
 	date: z.date(),
 	notes: z.string().max(200, "メモは200文字以内で入力してください").optional(),
 });
 
-export type HabitLogFormData = z.infer<typeof habitLogSchema>;
+const habitLogFormSchema = habitLogSchema.omit({ logID: true, date : true, habitID: true });
+
+export type HabitLogData = z.infer<typeof habitLogSchema>;
+export type HabitLogFormData = z.infer<typeof habitLogFormSchema>;
 
 interface CalendarOverlayProps {
 	isVisible: boolean;
-	initailData: HabitLogFormData | null;
+	initailData: HabitLogData | null;
 	onClose: () => void;
 }
 
@@ -53,9 +57,8 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 
 	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>(
 		{
-			resolver: zodResolver(habitLogSchema),
+			resolver: zodResolver(habitLogFormSchema),
 			defaultValues: {
-				habitID: initailData?.habitID,
 				status: initailData?.status,
 				notes: initailData?.notes,
 			},
@@ -102,7 +105,20 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 
 	const onSubmit = async (data: HabitLogFormData) => {
-		await toggleStatus(data.date.toISOString(), data.status, data.notes ?? "");
+		if (!initailData?.habitID || !initailData?.date) {
+			return;
+		}
+		console.log(data);
+
+		const habitLogData = {
+			...data,
+			notes: data.notes || "",
+			logID: initailData?.logID || undefined,
+			habitID: initailData.habitID,
+			date: initailData.date,
+		};
+
+		await toggleStatus(habitLogData);
 		handleClose();
 	};
 
