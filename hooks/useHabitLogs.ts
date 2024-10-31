@@ -17,7 +17,7 @@ interface ToggleStatusProps {
 
 export function useHabitLogs(habitId: string | undefined) {
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [error, setError] = useState<Error | null>(null);
 
 	const fetchLogs = useCallback(
 		async (habitId: string, currentDate: Date) => {
@@ -106,7 +106,9 @@ export function useHabitLogs(habitId: string | undefined) {
 				if (error) throw error;
 			}
 		} catch (error) {
-			setError(error instanceof Error ? error.message : "エラーが発生しました");
+			setError(
+				error instanceof Error ? error : new Error("Unknown error occurred"),
+			);
 		}
 	}
 
