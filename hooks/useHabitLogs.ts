@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 import type { Database } from "../types/schema";
-import { addDays, endOfWeek, format, startOfWeek } from "date-fns";
+import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
 import type { DateRange } from "@/types/type";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
+type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at" | "id">;
 
 interface ToggleStatusProps {
 	logID?: string;
@@ -18,21 +19,18 @@ export function useHabitLogs(habitId: string | undefined) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const getDateRange = useCallback((currentDate: Date): DateRange => {
-		const startDate = startOfWeek(currentDate, { weekStartsOn: 1 }); // 月曜始まり
-		const endDate = endOfWeek(currentDate, { weekStartsOn: 1 }); // 日曜終わり
-		return { startDate, endDate };
-	}, []);
-
 	const fetchLogs = useCallback(
 		async (habitId: string, currentDate: Date) => {
 			try {
 				setLoading(true);
 				setError(null);
 
-				const { startDate, endDate } = getDateRange(currentDate);
-				const startDateStr = format(startDate, "yyyy-MM-dd");
-				const endDateStr = format(endDate, "yyyy-MM-dd");
+				const startDateStr = format(subDays(currentDate, 6), "yyyy-MM-dd");
+				const endDateStr = format(currentDate, "yyyy-MM-dd");
+
+				// habit_logsには登録したひから今日以前のデータしかない
+				// データがないをどう返却するか
+				// 登録した日から昨日までのデータは存在する（バッチ処理するので）
 
 				const { data, error } = await supabase
 					.from("habit_logs")
@@ -52,10 +50,10 @@ export function useHabitLogs(habitId: string | undefined) {
 					throw error;
 				}
 
-				const organizedLogs: HabitLog[] = Array.from(
+				const organizedLogs: AppHabitLog[] = Array.from(
 					{ length: 7 },
 					(_, index) => {
-						const date = format(addDays(startDate, index), "yyyy-MM-dd");
+						const date = format(addDays(startDateStr, index), "yyyy-MM-dd");
 						const log = data?.find((log) =>
 							format(new Date(log.date), "yyyy-MM-dd") === date
 						);
@@ -66,7 +64,7 @@ export function useHabitLogs(habitId: string | undefined) {
 								habit_id: habitId,
 								date: date,
 								status: "unchecked",
-								note: "",
+								notes: "",
 							}
 						);
 					},
@@ -82,7 +80,7 @@ export function useHabitLogs(habitId: string | undefined) {
 				setLoading(false);
 			}
 		},
-		[getDateRange],
+		[],
 	);
 
 	async function toggleStatus(props: ToggleStatusProps) {
