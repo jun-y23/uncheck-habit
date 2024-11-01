@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 import type { Database } from "../types/schema";
 import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
-import type { DateRange } from "@/types/type";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
 type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at" | "id">;
@@ -15,18 +14,23 @@ interface ToggleStatusProps {
 	notes: string;
 }
 
-export function useHabitLogs(habitId: string | undefined) {
+export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
+	const [logs, setLogs] = useState<AppHabitLog[] | null>(null);
+	const [currentDate, setCurrentDate] = useState(_currentDate);
 
 	const fetchLogs = useCallback(
-		async (habitId: string, currentDate: Date) => {
+		async (habitId: string) => {
 			try {
 				setLoading(true);
 				setError(null);
 
 				const startDateStr = format(subDays(currentDate, 6), "yyyy-MM-dd");
 				const endDateStr = format(currentDate, "yyyy-MM-dd");
+
+				console.log("startDateStr", startDateStr);
+				console.log("endDateStr", endDateStr);
 
 				// habit_logsには登録したひから今日以前のデータしかない
 				// データがないをどう返却するか
@@ -54,8 +58,8 @@ export function useHabitLogs(habitId: string | undefined) {
 					{ length: 7 },
 					(_, index) => {
 						const date = format(addDays(startDateStr, index), "yyyy-MM-dd");
-						const log = data?.find((log) =>
-							format(new Date(log.date), "yyyy-MM-dd") === date
+						const log = data?.find(
+							(log) => format(new Date(log.date), "yyyy-MM-dd") === date,
 						);
 
 						return (
@@ -70,6 +74,8 @@ export function useHabitLogs(habitId: string | undefined) {
 					},
 				);
 
+				setLogs(organizedLogs);
+
 				return organizedLogs;
 			} catch (err) {
 				setError(
@@ -80,8 +86,38 @@ export function useHabitLogs(habitId: string | undefined) {
 				setLoading(false);
 			}
 		},
-		[],
+		[currentDate],
 	);
+
+	useEffect(() => {
+		if (!habitId) return;
+
+		const subscription = supabase
+			.channel("habit_logs_changes")
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "habit_logs",
+					filter: `habit_id=eq.${habitId}`,
+				},
+				async (payload) => {
+					await fetchLogs(habitId);
+				},
+			)
+			.subscribe();
+
+		return () => {
+			subscription.unsubscribe();
+		};
+	}, [habitId, currentDate, fetchLogs]);
+
+	useEffect(() => {
+		if (habitId) {
+			fetchLogs(habitId);
+		}
+	}, [habitId, currentDate, fetchLogs]);
 
 	async function toggleStatus(props: ToggleStatusProps) {
 		const { logID, habitID, date, status, notes } = props;
@@ -105,6 +141,7 @@ export function useHabitLogs(habitId: string | undefined) {
 
 				if (error) throw error;
 			}
+			await fetchLogs(habitID);
 		} catch (error) {
 			setError(
 				error instanceof Error ? error : new Error("Unknown error occurred"),
@@ -112,5 +149,5 @@ export function useHabitLogs(habitId: string | undefined) {
 		}
 	}
 
-	return { fetchLogs, loading, error, toggleStatus };
+	return { logs, fetchLogs, loading, error, toggleStatus };
 }

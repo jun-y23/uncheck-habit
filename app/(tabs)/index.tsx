@@ -31,7 +31,7 @@ interface WeeklyLogs {
 // HomeScreen Component
 const HomeScreen = () => {
 	const router = useRouter();
-	const [currentDate, setCurrentDate] = useState<Date>(subDays(new Date(), 6));
+	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
 	const [selectedHabit, setSelectedHabit] = useState<HabitLogData | null>(
@@ -136,9 +136,11 @@ const HabitList = (props: HabitListProps) => {
 	const { habits, startDate, openBottomSheet } = props;
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
-		const date = addDays(startDate, index);
-		return format(date, "d(E)", { locale: ja });
-	});
+    const today = new Date();
+    const startDate = subDays(today, 6); // 今日から6日前を開始日に設定
+    const date = addDays(startDate, index);
+    return format(date, "d(E)", { locale: ja });
+});
 
 	const renderHeader = () => (
 		<View style={styles.headerRow}>
@@ -188,21 +190,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 	currentDate,
 	openClickCell,
 }) => {
-	const [logs, setLogs] = useState<{ [key: string]: any }>({});
-
-	const startDate = currentDate;
-	const { fetchLogs, loading, error } = useHabitLogs(habit.id);
-
-	useEffect(() => {
-		const loadLogs = async () => {
-			const logsData = await fetchLogs(habit.id, currentDate);
-			if (logsData) {
-				setLogs(logsData);
-			}
-		};
-
-		loadLogs();
-	}, [habit.id, currentDate, fetchLogs]);
+	const { logs, loading, error } = useHabitLogs(habit.id, currentDate);
 
 	const getCellColor = (status: HabitStatus): string => {
 		switch (status) {
