@@ -42,28 +42,27 @@ export type HabitLogFormData = z.infer<typeof habitLogFormSchema>;
 
 interface CalendarOverlayProps {
 	isVisible: boolean;
-	initailData: HabitLogData | null;
+	initialData: HabitLogData | null;
 	onClose: () => void;
 }
 
 const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	isVisible,
-	initailData,
+	initialData,
 	onClose,
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
 
-	const { toggleStatus } = useToggleStatus(initailData?.habitID);
+	const { toggleStatus } = useToggleStatus(initialData?.habitID);
 
-	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>(
-		{
-			resolver: zodResolver(habitLogFormSchema),
-			defaultValues: {
-				status: initailData?.status,
-				notes: initailData?.notes,
-			},
-		},
-	);
+	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>({
+		resolver: zodResolver(habitLogFormSchema),
+		values: {  // defaultValues の代わりに values を使用
+      status: initialData?.status,
+      notes: initialData?.notes,
+    }
+	});
+
 
 	useEffect(() => {
 		if (isVisible) {
@@ -104,17 +103,16 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 
 	const onSubmit = async (data: HabitLogFormData) => {
-		if (!initailData?.habitID || !initailData?.date) {
+		if (!initialData?.habitID || !initialData?.date) {
 			return;
 		}
-		console.log(data);
 
 		const habitLogData = {
 			...data,
 			notes: data.notes || "",
-			logID: initailData?.logID || undefined,
-			habitID: initailData.habitID,
-			date: initailData.date,
+			logID: initialData?.logID || undefined,
+			habitID: initialData.habitID,
+			date: initialData.date,
 		};
 
 		await toggleStatus(habitLogData);
@@ -136,7 +134,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			<PanGestureHandler onGestureEvent={gestureHandler}>
 				<Animated.View style={[styles.contentContainer, rStyle]}>
 					<View style={styles.handle} />
-					<Text h4>{initailData?.date ? format(initailData.date, "M月d日（E）", { locale: ja }) : ""}</Text>
+					<Text h4>{initialData?.date ? format(initialData.date, "M月d日（E）", { locale: ja }) : ""}</Text>
 					<Controller
 						control={control}
 						name="status"

@@ -93,7 +93,7 @@ const HomeScreen = () => {
 			</SafeAreaView>
 				<CalendarOverlay
 					isVisible={isOverlayVisible}
-					initailData={selectedHabit}
+					initialData={selectedHabit}
 					onClose={closeOverlay}
 				/>
 		</GestureHandlerRootView>
