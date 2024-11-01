@@ -18,7 +18,7 @@ import Animated, {
 	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
-import { useHabitLogs } from "../hooks/useHabitLogs";
+import { useToggleStatus } from "../hooks/useHabitLogs";
 import {
 	format,
 } from "date-fns";
@@ -53,7 +53,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
 
-	const { toggleStatus } = useHabitLogs(initailData?.habitID);
+	const { toggleStatus } = useToggleStatus(initailData?.habitID);
 
 	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>(
 		{
@@ -64,7 +64,6 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			},
 		},
 	);
-	console.log(formState.errors);
 
 	useEffect(() => {
 		if (isVisible) {
@@ -119,6 +118,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 		};
 
 		await toggleStatus(habitLogData);
+		reset();
 		handleClose();
 	};
 

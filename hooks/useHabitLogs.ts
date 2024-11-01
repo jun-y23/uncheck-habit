@@ -29,9 +29,6 @@ export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
 				const startDateStr = format(subDays(currentDate, 6), "yyyy-MM-dd");
 				const endDateStr = format(currentDate, "yyyy-MM-dd");
 
-				console.log("startDateStr", startDateStr);
-				console.log("endDateStr", endDateStr);
-
 				// habit_logsには登録したひから今日以前のデータしかない
 				// データがないをどう返却するか
 				// 登録した日から昨日までのデータは存在する（バッチ処理するので）
@@ -119,8 +116,14 @@ export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
 		}
 	}, [habitId, currentDate, fetchLogs]);
 
-	async function toggleStatus(props: ToggleStatusProps) {
-		const { logID, habitID, date, status, notes } = props;
+	return { logs, fetchLogs, loading, error };
+}
+
+export const useToggleStatus = (habitID: string | undefined) => {
+	const toggleStatus = async (props: ToggleStatusProps) => {
+		const { logID, status, notes, date } = props;
+		if (!habitID) return;
+
 		try {
 			if (logID) {
 				const { error } = await supabase
@@ -141,13 +144,10 @@ export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
 
 				if (error) throw error;
 			}
-			await fetchLogs(habitID);
 		} catch (error) {
-			setError(
-				error instanceof Error ? error : new Error("Unknown error occurred"),
-			);
+			return error;
 		}
-	}
+	};
 
-	return { logs, fetchLogs, loading, error, toggleStatus };
-}
+	return { toggleStatus };
+};
