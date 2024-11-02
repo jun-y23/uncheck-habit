@@ -19,6 +19,9 @@ export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
 	const [error, setError] = useState<Error | null>(null);
 	const [logs, setLogs] = useState<AppHabitLog[] | null>(null);
 	const [currentDate, setCurrentDate] = useState(_currentDate);
+	useEffect(() => {
+		setCurrentDate(_currentDate);
+	}, [_currentDate]);
 
 	const fetchLogs = useCallback(
 		async (habitId: string) => {

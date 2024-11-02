@@ -214,7 +214,6 @@ const HabitRow: React.FC<HabitRowProps> = ({
 	openClickCell,
 }) => {
 	const { logs, loading, error } = useHabitLogs(habit.id, currentDate);
-	console.log(currentDate, "row")
 
 	const getCellColor = (status: HabitStatus): string => {
 		switch (status) {
