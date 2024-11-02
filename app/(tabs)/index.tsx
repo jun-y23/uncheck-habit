@@ -31,7 +31,7 @@ interface WeeklyLogs {
 // HomeScreen Component
 const HomeScreen = () => {
 	const router = useRouter();
-	const today = new Date();
+	const today = format(new Date(), "yyyy-MM-dd");
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
@@ -61,10 +61,17 @@ const HomeScreen = () => {
 	};
 
 	const goToNextWeek = () => {
-		if (currentDate >= today) {
-			return;
+		if (currentDate >= new Date(today)) {
+			return
 		}
-		setCurrentDate((prevDate) => addDays(prevDate, 6));
+
+		setCurrentDate((prevDate) => {
+			// currentDateがtodayより未来にならないようにする
+			if (format(addDays(prevDate, 6), "yyyy-MM-dd") >= format(today, "yyyy-MM-dd")) {
+				return new Date(today);
+			}
+			return addDays(prevDate, 6);
+		});
 	}
 
 	const openOverlay = (habit: HabitLogData) => {
@@ -151,7 +158,6 @@ interface HabitListProps {
 
 const HabitList = (props: HabitListProps) => {
 	const { habits, startDate, openBottomSheet } = props;
-	console.log(startDate);
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
     const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
@@ -208,6 +214,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 	openClickCell,
 }) => {
 	const { logs, loading, error } = useHabitLogs(habit.id, currentDate);
+	console.log(currentDate, "row")
 
 	const getCellColor = (status: HabitStatus): string => {
 		switch (status) {
