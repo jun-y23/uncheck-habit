@@ -31,6 +31,7 @@ interface WeeklyLogs {
 // HomeScreen Component
 const HomeScreen = () => {
 	const router = useRouter();
+	const today = new Date();
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
 	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
@@ -59,6 +60,13 @@ const HomeScreen = () => {
 		setCurrentDate((prevDate) => subDays(prevDate, 6));
 	};
 
+	const goToNextWeek = () => {
+		if (currentDate >= today) {
+			return;
+		}
+		setCurrentDate((prevDate) => addDays(prevDate, 6));
+	}
+
 	const openOverlay = (habit: HabitLogData) => {
 		setSelectedHabit(habit);
 		setIsOverlayVisible(true);
@@ -75,6 +83,7 @@ const HomeScreen = () => {
 					<WeeklyCalendarView
 						currentDate={currentDate}
 						onPreviousWeek={goToPreviousWeek}
+						onNextWeek={goToNextWeek}
 					/>
 					<HabitList
 						habits={habits}
@@ -104,10 +113,11 @@ const HomeScreen = () => {
 interface WeeklyCalendarViewProps {
 	currentDate: Date;
 	onPreviousWeek: () => void;
+	onNextWeek: () => void;
 }
 
 const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
-	const { currentDate, onPreviousWeek} = props;
+	const { currentDate, onPreviousWeek, onNextWeek} = props;
 
 	return (
 		<View style={styles.calendarContainer}>
@@ -121,6 +131,13 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 			<Text h4 style={styles.monthText}>
 				{format(currentDate, "yyyy年M月", { locale: ja })}
 			</Text>
+			<Button
+				icon={
+					<Icon name="chevron-right" type="material-community" color="#000000" />
+				}
+				type="clear"
+				onPress={onNextWeek}
+			/>
 		</View>
 	);
 };
@@ -134,13 +151,13 @@ interface HabitListProps {
 
 const HabitList = (props: HabitListProps) => {
 	const { habits, startDate, openBottomSheet } = props;
+	console.log(startDate);
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
-    const today = new Date();
-    const startDate = subDays(today, 6); // 今日から6日前を開始日に設定
-    const date = addDays(startDate, index);
+    const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
+    const date = addDays(start, index);
     return format(date, "d(E)", { locale: ja });
-});
+	});
 
 	const renderHeader = () => (
 		<View style={styles.headerRow}>
