@@ -1,21 +1,20 @@
-import { useHabitLogs } from "@/hooks/useHabitLogs";
-import { Button, Icon,  Text } from "@rneui/themed";
-import {
-	addDays,
-	format,
-	subDays,
-} from "date-fns";
+import { useHabitLogsSubscription } from "@/hooks/useHabitLogsSubscription";
+import { Button, Icon, Text } from "@rneui/themed";
+import { addDays, format, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
-import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { FlatList, StyleSheet, TouchableOpacity, View, Animated,
+  ActivityIndicator,
+ } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarOverlay from "../../components/CalendarOverlay";
 import type { HabitLogData } from "../../components/CalendarOverlay";
 import { supabase } from "../../libs/supabase";
 import type { Habit } from "../../types/type";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -34,10 +33,6 @@ const HomeScreen = () => {
 	const today = format(new Date(), "yyyy-MM-dd");
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
-	const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-	const [selectedHabit, setSelectedHabit] = useState<HabitLogData | null>(
-		null,
-	);
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -62,26 +57,20 @@ const HomeScreen = () => {
 
 	const goToNextWeek = () => {
 		if (currentDate >= new Date(today)) {
-			return
+			return;
 		}
 
 		setCurrentDate((prevDate) => {
 			// currentDateがtodayより未来にならないようにする
-			if (format(addDays(prevDate, 6), "yyyy-MM-dd") >= format(today, "yyyy-MM-dd")) {
+			if (
+				format(addDays(prevDate, 6), "yyyy-MM-dd") >=
+				format(today, "yyyy-MM-dd")
+			) {
 				return new Date(today);
 			}
 			return addDays(prevDate, 6);
 		});
-	}
-
-	const openOverlay = (habit: HabitLogData) => {
-		setSelectedHabit(habit);
-		setIsOverlayVisible(true);
 	};
-
-	const closeOverlay = useCallback(() => {
-		setIsOverlayVisible(false);
-	}, []);
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
@@ -95,7 +84,6 @@ const HomeScreen = () => {
 					<HabitList
 						habits={habits}
 						startDate={currentDate}
-						openBottomSheet={openOverlay}
 					/>
 				</View>
 				<View style={styles.buttonContainer}>
@@ -107,11 +95,6 @@ const HomeScreen = () => {
 					/>
 				</View>
 			</SafeAreaView>
-				<CalendarOverlay
-					isVisible={isOverlayVisible}
-					initialData={selectedHabit}
-					onClose={closeOverlay}
-				/>
 		</GestureHandlerRootView>
 	);
 };
@@ -124,7 +107,7 @@ interface WeeklyCalendarViewProps {
 }
 
 const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
-	const { currentDate, onPreviousWeek, onNextWeek} = props;
+	const { currentDate, onPreviousWeek, onNextWeek } = props;
 
 	return (
 		<View style={styles.calendarContainer}>
@@ -140,7 +123,11 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 			</Text>
 			<Button
 				icon={
-					<Icon name="chevron-right" type="material-community" color="#000000" />
+					<Icon
+						name="chevron-right"
+						type="material-community"
+						color="#000000"
+					/>
 				}
 				type="clear"
 				onPress={onNextWeek}
@@ -153,16 +140,15 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 interface HabitListProps {
 	habits: Habit[];
 	startDate: Date;
-	openBottomSheet: (habit: HabitLogData) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
-	const { habits, startDate, openBottomSheet } = props;
+	const { habits, startDate } = props;
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
-    const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
-    const date = addDays(start, index);
-    return format(date, "d(E)", { locale: ja });
+		const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
+		const date = addDays(start, index);
+		return format(date, "d(E)", { locale: ja });
 	});
 
 	const renderHeader = () => (
@@ -194,7 +180,6 @@ const HabitList = (props: HabitListProps) => {
 					<HabitRow
 						habit={item}
 						currentDate={startDate}
-						openClickCell={openBottomSheet}
 					/>
 				)}
 			/>
@@ -203,79 +188,150 @@ const HabitList = (props: HabitListProps) => {
 };
 
 interface HabitRowProps {
-	habit: Habit;
-	currentDate: Date;
-	openClickCell: (habit: HabitLogData) => void;
+  habit: Habit;
+  currentDate: Date;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
-	habit,
-	currentDate,
-	openClickCell,
+  habit,
+  currentDate,
 }) => {
-	const { logs, loading, error } = useHabitLogs(habit.id, currentDate);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [isVisible, setIsVisible] = useState(false);
+  const [initialData, setInitialData] = useState<HabitLogData | null>(null);
 
-	const getCellColor = (status: HabitStatus): string => {
-		switch (status) {
-			case "achieved":
-				return "#00FF00";
-			case "not_achieved":
-				return "#FF7F7F";
-			default:
-				return "#EBEDF0";
-		}
-	};
+  const {
+    logs,
+    isInitialLoading,
+    updatingDates,
+    updateLog
+  } = useHabitLogsSubscription({
+    habitId: habit.id,
+    _currentDate: currentDate,
+    onError: (error) => {
+      console.error('Habit logs error:', error);
+    }
+  });
 
-	const handleOnPress = (date: string, status: HabitStatus, notes: string) => {
-		openClickCell({
-			habitID: habit.id,
-			date: new Date(date),
-			status,
-			notes, // Add notes to the data passed to openClickCell
-		});
-	};
+  const handleOpen = useCallback((date: string, status: HabitStatus, notes: string = '') => {
+		console.log('Opening overlay with date:', date); // デバッグ用
+    setInitialData({
+      habitID: habit.id,
+      status,
+      date: new Date(date),
+      notes
+    });
+    setIsVisible(true);
+  }, [habit.id]);
 
-	return (
-		<View style={styles.habitRow}>
-			{/* 習慣名セル */}
-			<View style={[styles.cell, styles.habitNameCell]}>
-				<View style={styles.habitContainer}>
-					{habit.icon && (
-						<Icon
-							name={habit.icon}
-							size={16}
-							style={styles.icon}
-							containerStyle={styles.iconContainer}
-						/>
-					)}
-					<Text style={styles.habitName} numberOfLines={1}>
-						{habit.name}
-					</Text>
-				</View>
-			</View>
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setInitialData(null);
+  }, []);
 
-			{/* チェックセル */}
-			{!loading &&
-				logs &&
-				logs.length > 0 &&
-				logs?.map((log, index) => {
-					return (
-						<TouchableOpacity
-							key={`${index}`}
-							style={[styles.cell, styles.dateCell]}
-							onPress={() => handleOnPress(log.date, log.status, log.notes)} // Pass notes to handleOnPress
-						>
-							<View
-								style={[
-									styles.checkBox,
-									{ backgroundColor: getCellColor(log.status) },
-								]}
-							/>
-						</TouchableOpacity>
-					);
-				})}
-		</View>
-	);
+  const animatePress = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.7,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim]);
+
+  const toggleStatus = useCallback(async (date: string) => {
+    const log = logs.find(log => log.date === date);
+    const newStatus = log?.status === 'achieved' ? 'not_achieved' : 'achieved';
+    animatePress();
+    await updateLog(date, newStatus);
+  }, [logs, updateLog, animatePress]);
+
+  const getCellColor = useCallback((status: HabitStatus): string => {
+    switch (status) {
+      case "achieved":
+        return "#00FF00";
+      case "not_achieved":
+        return "#FF7F7F";
+      default:
+        return "#EBEDF0";
+    }
+  }, []);
+
+  const getOpacity = useCallback((date: string) => {
+    return updatingDates.has(date) ? 0.6 : 1;
+  }, [updatingDates]);
+
+  if (isInitialLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#0000ff" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Animated.View style={[styles.habitRow, { opacity: fadeAnim }]}>
+        <View style={[styles.cell, styles.habitNameCell]}>
+          <View style={styles.habitContainer}>
+            {habit.icon && (
+              <Icon
+                name={habit.icon}
+                size={16}
+                style={styles.icon}
+                containerStyle={styles.iconContainer}
+              />
+            )}
+            <Text style={styles.habitName} numberOfLines={1}>
+              {habit.name}
+            </Text>
+          </View>
+        </View>
+
+        {logs.map((log, index) => {
+          const isUpdating = updatingDates.has(log.date);
+
+          return (
+            <TouchableOpacity
+              key={log.date}
+              style={[styles.cell, styles.dateCell]}
+              onPress={() => handleOpen(log.date, log.status, log.notes || '')}
+              disabled={isUpdating}
+            >
+              <Animated.View
+                style={[
+                  styles.checkBox,
+                  {
+                    backgroundColor: getCellColor(log.status),
+                    opacity: getOpacity(log.date)
+                  }
+                ]}
+              >
+                {isUpdating && (
+                  <ActivityIndicator
+                    size="small"
+                    color="#ffffff"
+                    style={styles.miniLoader}
+                  />
+                )}
+              </Animated.View>
+            </TouchableOpacity>
+          );
+        })}
+      </Animated.View>
+
+      <CalendarOverlay
+        isVisible={isVisible}
+        initialData={initialData}
+        onClose={handleClose}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -286,6 +342,11 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 	},
+	loadingContainer: {
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 	buttonContainer: {
 		position: "absolute",
 		bottom: 20,
@@ -385,6 +446,13 @@ const styles = StyleSheet.create({
 		height: 35,
 		borderRadius: 4,
 	},
+	miniLoader: {
+    position: 'absolute',
+  },
+	updatingCell: {
+    opacity: 0.7,
+  },
+
 });
 
 export default HomeScreen;

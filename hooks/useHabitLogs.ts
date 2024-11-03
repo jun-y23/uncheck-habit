@@ -91,6 +91,7 @@ export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
 
 	useEffect(() => {
 		if (!habitId) return;
+		console.log("subsv");
 
 		const subscription = supabase
 			.channel("habit_logs_changes")
