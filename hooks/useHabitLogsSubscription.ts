@@ -5,7 +5,7 @@ import type { Database } from "../types/schema";
 import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
-type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at" | "id">;
+type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at">;
 
 interface UseHabitLogsSubscriptionProps {
   habitId: string;

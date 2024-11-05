@@ -42,7 +42,8 @@ const HomeScreen = () => {
       habitID: props.habitID,
       status: props.status,
       date: new Date(props.date),
-      notes: props.notes
+      notes: props.notes,
+			logID: props?.logID ?? undefined
     });
     setIsVisible(true);
   };
@@ -276,12 +277,13 @@ const HabitRow: React.FC<HabitRowProps> = ({
     return updatingDates.has(date) ? 0.6 : 1;
   }, [updatingDates]);
 
-	const handleOpen = (habitID: string, date, status, notes) => {
+	const handleOpen = (props: HabitLogData) => {
 		onClickCell({
-			habitID,
-			status,
-			date: new Date(date),
-			notes
+			habitID: props.habitID,
+			status: props.status,
+			date: new Date(props.date),
+			notes: props.notes,
+			logID: props?.logID ?? undefined
 		})
 	}
 
@@ -319,7 +321,13 @@ const HabitRow: React.FC<HabitRowProps> = ({
             <TouchableOpacity
               key={log.date}
               style={[styles.cell, styles.dateCell]}
-              onPress={() => handleOpen(habit.id, log.date, log.status, log.notes)}
+              onPress={() => handleOpen({
+								habitID: habit.id,
+								status: log.status,
+								date: new Date(log.date),
+								notes: log?.notes ?? undefined,
+								logID: log.id
+							})}
               disabled={isUpdating}
             >
               <Animated.View
