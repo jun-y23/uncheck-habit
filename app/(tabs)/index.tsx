@@ -33,6 +33,24 @@ const HomeScreen = () => {
 	const today = format(new Date(), "yyyy-MM-dd");
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [habits, setHabits] = useState<Habit[]>([]);
+	
+  const [isVisible, setIsVisible] = useState(false);
+  const [initialData, setInitialData] = useState<HabitLogData | null>(null);
+
+  const handleOpen = (props: HabitLogData) => {
+    setInitialData({
+      habitID: props.habitID,
+      status: props.status,
+      date: new Date(props.date),
+      notes: props.notes
+    });
+    setIsVisible(true);
+  };
+
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setInitialData(null);
+  }, []);
 
 	useEffect(() => {
 		fetchHabitsAndLogs();
@@ -84,6 +102,7 @@ const HomeScreen = () => {
 					<HabitList
 						habits={habits}
 						startDate={currentDate}
+						onClickCell={handleOpen}
 					/>
 				</View>
 				<View style={styles.buttonContainer}>
@@ -95,6 +114,11 @@ const HomeScreen = () => {
 					/>
 				</View>
 			</SafeAreaView>
+			<CalendarOverlay
+        isVisible={isVisible}
+        initialData={initialData}
+        onClose={handleClose}
+      />
 		</GestureHandlerRootView>
 	);
 };
@@ -140,10 +164,11 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 interface HabitListProps {
 	habits: Habit[];
 	startDate: Date;
+	onClickCell: (habit: HabitLogData) => void
 }
 
 const HabitList = (props: HabitListProps) => {
-	const { habits, startDate } = props;
+	const { habits, startDate, onClickCell } = props;
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
 		const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
@@ -180,6 +205,7 @@ const HabitList = (props: HabitListProps) => {
 					<HabitRow
 						habit={item}
 						currentDate={startDate}
+						onClickCell={onClickCell}
 					/>
 				)}
 			/>
@@ -190,15 +216,15 @@ const HabitList = (props: HabitListProps) => {
 interface HabitRowProps {
   habit: Habit;
   currentDate: Date;
+	onClickCell: (habit: HabitLogData) => void
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
   habit,
   currentDate,
+	onClickCell
 }) => {
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const [isVisible, setIsVisible] = useState(false);
-  const [initialData, setInitialData] = useState<HabitLogData | null>(null);
+	const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const {
     logs,
@@ -212,22 +238,6 @@ const HabitRow: React.FC<HabitRowProps> = ({
       console.error('Habit logs error:', error);
     }
   });
-
-  const handleOpen = useCallback((date: string, status: HabitStatus, notes: string = '') => {
-		console.log('Opening overlay with date:', date); // デバッグ用
-    setInitialData({
-      habitID: habit.id,
-      status,
-      date: new Date(date),
-      notes
-    });
-    setIsVisible(true);
-  }, [habit.id]);
-
-  const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setInitialData(null);
-  }, []);
 
   const animatePress = useCallback(() => {
     Animated.sequence([
@@ -266,6 +276,15 @@ const HabitRow: React.FC<HabitRowProps> = ({
     return updatingDates.has(date) ? 0.6 : 1;
   }, [updatingDates]);
 
+	const handleOpen = (habitID: string, date, status, notes) => {
+		onClickCell({
+			habitID,
+			status,
+			date: new Date(date),
+			notes
+		})
+	}
+
   if (isInitialLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -300,7 +319,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
             <TouchableOpacity
               key={log.date}
               style={[styles.cell, styles.dateCell]}
-              onPress={() => handleOpen(log.date, log.status, log.notes || '')}
+              onPress={() => handleOpen(habit.id, log.date, log.status, log.notes)}
               disabled={isUpdating}
             >
               <Animated.View
@@ -324,12 +343,6 @@ const HabitRow: React.FC<HabitRowProps> = ({
           );
         })}
       </Animated.View>
-
-      <CalendarOverlay
-        isVisible={isVisible}
-        initialData={initialData}
-        onClose={handleClose}
-      />
     </View>
   );
 };
