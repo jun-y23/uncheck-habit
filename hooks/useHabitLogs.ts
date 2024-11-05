@@ -14,117 +14,8 @@ interface ToggleStatusProps {
 	notes: string;
 }
 
-export function useHabitLogs(habitId: string | undefined, _currentDate: Date) {
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<Error | null>(null);
-	const [logs, setLogs] = useState<AppHabitLog[] | null>(null);
-	const [currentDate, setCurrentDate] = useState(_currentDate);
-	useEffect(() => {
-		setCurrentDate(_currentDate);
-	}, [_currentDate]);
-
-	const fetchLogs = useCallback(
-		async (habitId: string) => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				const startDateStr = format(subDays(currentDate, 6), "yyyy-MM-dd");
-				const endDateStr = format(currentDate, "yyyy-MM-dd");
-
-				// habit_logsには登録したひから今日以前のデータしかない
-				// データがないをどう返却するか
-				// 登録した日から昨日までのデータは存在する（バッチ処理するので）
-
-				const { data, error } = await supabase
-					.from("habit_logs")
-					.select(`
-          id,
-          habit_id,
-					date,
-          status,
-          notes
-        `)
-					.eq("habit_id", habitId) // 対象のhabit_idでフィルタリング
-					.gte("date", startDateStr)
-					.lte("date", endDateStr)
-					.order("date", { ascending: true });
-
-				if (error) {
-					throw error;
-				}
-
-				const organizedLogs: AppHabitLog[] = Array.from(
-					{ length: 7 },
-					(_, index) => {
-						const date = format(addDays(startDateStr, index), "yyyy-MM-dd");
-						const log = data?.find(
-							(log) => format(new Date(log.date), "yyyy-MM-dd") === date,
-						);
-
-						return (
-							log || {
-								id: null,
-								habit_id: habitId,
-								date: date,
-								status: "unchecked",
-								notes: "",
-							}
-						);
-					},
-				);
-
-				setLogs(organizedLogs);
-
-				return organizedLogs;
-			} catch (err) {
-				setError(
-					err instanceof Error ? err : new Error("Unknown error occurred"),
-				);
-				return null;
-			} finally {
-				setLoading(false);
-			}
-		},
-		[currentDate],
-	);
-
-	useEffect(() => {
-		if (!habitId) return;
-		console.log("subsv");
-
-		const subscription = supabase
-			.channel("habit_logs_changes")
-			.on(
-				"postgres_changes",
-				{
-					event: "*",
-					schema: "public",
-					table: "habit_logs",
-					filter: `habit_id=eq.${habitId}`,
-				},
-				async (payload) => {
-					await fetchLogs(habitId);
-				},
-			)
-			.subscribe();
-
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, [habitId, currentDate, fetchLogs]);
-
-	useEffect(() => {
-		if (habitId) {
-			fetchLogs(habitId);
-		}
-	}, [habitId, currentDate, fetchLogs]);
-
-	return { logs, fetchLogs, loading, error };
-}
-
-export const useToggleStatus = (habitID: string | undefined) => {
-	const toggleStatus = async (props: ToggleStatusProps) => {
+export const useUpdateLog = (habitID: string | undefined) => {
+	const updateLog = async (props: ToggleStatusProps) => {
 		const { logID, status, notes, date } = props;
 		if (!habitID) return;
 
@@ -153,5 +44,5 @@ export const useToggleStatus = (habitID: string | undefined) => {
 		}
 	};
 
-	return { toggleStatus };
+	return { updateLog };
 };

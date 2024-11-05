@@ -7,6 +7,15 @@ import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
 type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at">;
 
+
+interface UpdateLogProps {
+	logID?: string;
+	habitID: string;
+	date: Date;
+	status: "achieved" | "not_achieved" | "unchecked";
+	notes: string;
+}
+
 interface UseHabitLogsSubscriptionProps {
   habitId: string;
   _currentDate: Date;
@@ -132,24 +141,28 @@ export const useHabitLogsSubscription = ({
     };
   }, [habitId, currentDate]);
 
-  const updateLog = async (date: string, status: HabitLog["status"]) => {
+  const updateLog = async (props: UpdateLogProps) => {
+    const { logID, date, status, notes } = props;
+    console.log('updateLog', logID, date, status, notes)
+    const updatingDate = format(date, "yyyy-MM-dd");
+
     try {
       // 更新中の日付を記録
-      setUpdatingDates((prev) => new Set(prev).add(date));
+      setUpdatingDates((prev) => new Set(prev).add(updatingDate));
 
       // 楽観的更新
       setLogs((currentLogs) =>
-        currentLogs.map((log) => log.date === date ? { ...log, status } : log)
+        currentLogs.map((log) => log.date === updatingDate ? { ...log, status, notes } : log)
       );
 
-      const existingLog = logs.find((log) => log.date === date);
+      const existingLog = logs.find((log) => log.date === updatingDate);
 
       if (existingLog?.id) {
         const { error } = await supabase
           .from("habit_logs")
           .update({
-            status,
-            updated_at: new Date().toISOString(),
+            status: status,
+            notes,
           })
           .eq("id", existingLog.id);
 
@@ -159,8 +172,9 @@ export const useHabitLogsSubscription = ({
           .from("habit_logs")
           .insert({
             habit_id: habitId,
-            date,
+            date: updatingDate,
             status,
+            notes
           });
 
         if (error) throw error;
@@ -176,7 +190,7 @@ export const useHabitLogsSubscription = ({
       // 更新中の日付を削除
       setUpdatingDates((prev) => {
         const next = new Set(prev);
-        next.delete(date);
+        next.delete(updatingDate);
         return next;
       });
     }

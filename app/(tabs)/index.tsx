@@ -43,7 +43,8 @@ const HomeScreen = () => {
       status: props.status,
       date: new Date(props.date),
       notes: props.notes,
-			logID: props?.logID ?? undefined
+			logID: props?.logID ?? undefined,
+			onUpdateLog: props.onUpdateLog
     });
     setIsVisible(true);
   };
@@ -255,11 +256,15 @@ const HabitRow: React.FC<HabitRowProps> = ({
     ]).start();
   }, [fadeAnim]);
 
-  const toggleStatus = useCallback(async (date: string) => {
-    const log = logs.find(log => log.date === date);
-    const newStatus = log?.status === 'achieved' ? 'not_achieved' : 'achieved';
+  const toggleStatus = useCallback(async (data: HabitLogData) => {
     animatePress();
-    await updateLog(date, newStatus);
+    await updateLog({
+			logID: data?.logID,
+			habitID: habit.id,
+			status: data.status,
+			date: data.date,
+			notes: data?.notes ?? '',
+		});
   }, [logs, updateLog, animatePress]);
 
   const getCellColor = useCallback((status: HabitStatus): string => {
@@ -283,7 +288,8 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			status: props.status,
 			date: new Date(props.date),
 			notes: props.notes,
-			logID: props?.logID ?? undefined
+			logID: props?.logID ?? undefined,
+			onUpdateLog: toggleStatus
 		})
 	}
 

@@ -18,7 +18,7 @@ import Animated, {
 	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
-import { useToggleStatus } from "../hooks/useHabitLogs";
+import { useUpdateLog } from "../hooks/useHabitLogs";
 import {
 	format,
 } from "date-fns";
@@ -37,7 +37,9 @@ const habitLogSchema = z.object({
 
 const habitLogFormSchema = habitLogSchema.omit({ logID: true, date : true, habitID: true });
 
-export type HabitLogData = z.infer<typeof habitLogSchema>;
+export type HabitLogData = z.infer<typeof habitLogSchema> & {
+	onUpdateLog?: (log: HabitLogData) => Promise<void>;
+}
 export type HabitLogFormData = z.infer<typeof habitLogFormSchema>;
 
 interface CalendarOverlayProps {
@@ -52,8 +54,6 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	onClose,
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
-
-	const { toggleStatus } = useToggleStatus(initialData?.habitID);
 
 	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>({
 		resolver: zodResolver(habitLogFormSchema),
@@ -104,7 +104,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 
 	const onSubmit = async (data: HabitLogFormData) => {
-		if (!initialData?.habitID || !initialData?.date) {
+		if (!initialData?.habitID || !initialData?.date || !initialData?.onUpdateLog) {
 			return;
 		}
 
@@ -116,7 +116,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			date: initialData.date,
 		};
 
-		await toggleStatus(habitLogData);
+		await initialData.onUpdateLog(habitLogData)
 		reset();
 		handleClose();
 	};
