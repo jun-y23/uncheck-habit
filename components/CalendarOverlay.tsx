@@ -18,7 +18,6 @@ import Animated, {
 	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
-import { useUpdateLog } from "../hooks/useHabitLogs";
 import {
 	format,
 } from "date-fns";
