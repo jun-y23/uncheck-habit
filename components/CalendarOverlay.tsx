@@ -57,7 +57,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>({
 		resolver: zodResolver(habitLogFormSchema),
 		values: {  // defaultValues の代わりに values を使用
-      status: initialData?.status,
+      status: initialData?.status || "unchecked",
       notes: initialData?.notes,
     }
 	});
