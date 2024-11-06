@@ -74,7 +74,7 @@ export const useHabitLogsSubscription = ({
 
           return (
             log || {
-              id: null,
+              id: undefined,
               habit_id: habitId,
               date: date,
               status: "unchecked",
