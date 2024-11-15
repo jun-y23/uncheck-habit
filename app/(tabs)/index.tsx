@@ -265,7 +265,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			date: data.date,
 			notes: data?.notes ?? '',
 		});
-  }, [logs, updateLog, animatePress]);
+  }, [updateLog, animatePress, habit.id]);
 
   const getCellColor = useCallback((status: HabitStatus): string => {
     switch (status) {
