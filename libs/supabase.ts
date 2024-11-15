@@ -2,7 +2,7 @@ import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../types/schema";
-
+console.log(process.env.NODE_ENV);
 const supabaseUrl = process.env.NODE_ENV === "development"
 	? process.env.EXPO_PUBLIC_SUPABASE_LOCAL_URL as string // Use local URL for development
 	: process.env.EXPO_PUBLIC_SUPABASE_URL as string;

@@ -16,12 +16,12 @@ export function useHabitCreate() {
       setError(null);
 
       if (!session?.user) throw new Error("認証が必要です");
-      console.log(session?.user);
 
       const { data, error } = await supabase
         .from("habits")
         .insert([{ ...habit, user_id: session.user.id }])
         .single();
+      console.log(data, error);
 
       if (error) throw error;
       return data;

@@ -15,10 +15,6 @@ type NewHabitLog = {
   notes: string;
 };
 
-const supabaseUrl = "http://host.docker.internal:54321"; // ローカルのSupabase URL
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"; // ローカルの anon key または service_role key
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -27,13 +23,13 @@ serve(async (req) => {
   try {
     // Supabase clientの初期化
     const supabaseClient = createClient(
-      supabaseUrl ?? "",
-      supabaseKey ?? "",
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
+    console.log(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
 
     // 前日の日付を取得
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
     const targetDate = yesterday.toISOString().split("T")[0];
 
     // 毎日の習慣を取得
@@ -43,10 +39,13 @@ serve(async (req) => {
       .eq("frequency_type", "daily")
       .eq("is_archived", false);
 
+    console.log(`Processing habits for ${habits}`);
+
     if (habitsError) {
       throw habitsError;
     }
 
+    console.log(habits, "a");
     const logsToCreate: NewHabitLog[] = [];
 
     // 各習慣に対して処理

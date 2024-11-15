@@ -14,7 +14,8 @@ export function useSession() {
       if (!session) {
         supabase.auth.signInAnonymously().then(
           ({ data: { session } }) => {
-            setSession(session);
+            console.log("Signed in anonymously", session);
+            setSession(session.user);
             setIsLoading(false);
           },
         );
