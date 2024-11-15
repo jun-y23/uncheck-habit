@@ -39,13 +39,10 @@ serve(async (req) => {
       .eq("frequency_type", "daily")
       .eq("is_archived", false);
 
-    console.log(`Processing habits for ${habits}`);
-
     if (habitsError) {
       throw habitsError;
     }
 
-    console.log(habits, "a");
     const logsToCreate: NewHabitLog[] = [];
 
     // 各習慣に対して処理
