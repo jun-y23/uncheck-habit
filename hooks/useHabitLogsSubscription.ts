@@ -155,16 +155,22 @@ export const useHabitLogsSubscription = ({
         )
       );
 
-      const existingLog = logs.find((log) => log.date === updatingDate);
+      if (logID) {
+        if (status === "unchecked") {
+          const { error } = await supabase
+            .from("habit_logs")
+            .delete()
+            .eq("id", logID);
+          if (error) throw error;
+        }
 
-      if (existingLog?.id) {
         const { error } = await supabase
           .from("habit_logs")
           .update({
             status: status,
             notes,
           })
-          .eq("id", existingLog.id);
+          .eq("id", logID);
 
         if (error) throw error;
       } else {
