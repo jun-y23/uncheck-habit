@@ -7,12 +7,13 @@ import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
 type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at">;
 
+
 interface UpdateLogProps {
-  logID?: string;
-  habitID: string;
-  date: Date;
-  status: "achieved" | "not_achieved" | "unchecked";
-  notes: string;
+	logID?: string;
+	habitID: string;
+	date: Date;
+	status: "achieved" | "not_achieved" | "unchecked";
+	notes: string;
 }
 
 interface UseHabitLogsSubscriptionProps {
@@ -90,7 +91,7 @@ export const useHabitLogsSubscription = ({
     } finally {
       setIsInitialLoading(false);
     }
-  }, [habitId, startDateStr, endDateStr]);
+  }, [habitId, currentDate]);
 
   useEffect(() => {
     let mounted = true;
@@ -138,11 +139,11 @@ export const useHabitLogsSubscription = ({
         subscription.unsubscribe();
       }
     };
-  }, [habitId, subscription, fetchLogs]);
+  }, [habitId, currentDate]);
 
   const updateLog = async (props: UpdateLogProps) => {
     const { logID, date, status, notes } = props;
-    console.log("updateLog", logID, date, status, notes);
+    console.log('updateLog', logID, date, status, notes)
     const updatingDate = format(date, "yyyy-MM-dd");
 
     try {
@@ -151,9 +152,7 @@ export const useHabitLogsSubscription = ({
 
       // 楽観的更新
       setLogs((currentLogs) =>
-        currentLogs.map((log) =>
-          log.date === updatingDate ? { ...log, status, notes } : log
-        )
+        currentLogs.map((log) => log.date === updatingDate ? { ...log, status, notes } : log)
       );
 
       const existingLog = logs.find((log) => log.date === updatingDate);
@@ -175,7 +174,7 @@ export const useHabitLogsSubscription = ({
             habit_id: habitId,
             date: updatingDate,
             status,
-            notes,
+            notes
           });
 
         if (error) throw error;
