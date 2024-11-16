@@ -34,6 +34,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      habit_daily_statistics: {
+        Row: {
+          achieved_days: number
+          achievement_rate: number
+          calculated_at: string
+          habit_id: string | null
+          id: string
+          total_days: number
+        }
+        Insert: {
+          achieved_days: number
+          achievement_rate: number
+          calculated_at?: string
+          habit_id?: string | null
+          id?: string
+          total_days: number
+        }
+        Update: {
+          achieved_days?: number
+          achievement_rate?: number
+          calculated_at?: string
+          habit_id?: string | null
+          id?: string
+          total_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_daily_statistics_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habit_statistics_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "habit_daily_statistics_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_logs: {
         Row: {
           created_at: string
@@ -63,6 +105,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habit_statistics_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "habit_logs_habit_id_fkey"
             columns: ["habit_id"]
@@ -157,10 +206,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      habit_statistics_view: {
+        Row: {
+          achieved_days: number | null
+          achievement_rate: number | null
+          calculated_at: string | null
+          id: string | null
+          name: string | null
+          start_date: string | null
+          total_days: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      calculate_habit_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      install_extensions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
