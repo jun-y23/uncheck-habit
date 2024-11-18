@@ -55,7 +55,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
       if (error) throw error;
 
       setIsEditing(false);
-      navigation.setParams({ name });
     } catch (error) {
       Alert.alert('エラー', '名前の更新に失敗しました');
     }
