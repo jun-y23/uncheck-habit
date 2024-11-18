@@ -5,14 +5,20 @@ import React from "react";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { usePathname } from 'expo-router';
+
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
+
+	const pathname = usePathname();
+	const isHabitDetail = pathname.match(/^\/habits\/[^/]+$/);
 
 	return (
 		<Tabs
 			screenOptions={{
 				tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+				tabBarStyle: isHabitDetail ? { display: 'none' } : undefined
 			}}
 		>
 			<Tabs.Screen
@@ -28,8 +34,9 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="habit-list"
+				name="habits"
 				options={{
+					headerShown: false,
 					title: "習慣一覧",
 					tabBarIcon: ({ color, focused }) => (
 						<TabBarIcon

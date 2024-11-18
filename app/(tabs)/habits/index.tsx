@@ -1,7 +1,7 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { useHabits } from '../../hooks/useHabits';
-import {HabitList} from '../../components/HabitList';
+import { useHabits } from '../../../hooks/useHabits';
+import {HabitList} from '../../../components/HabitList';
 
 export default function HabitListScreen() {
   return (

@@ -1,8 +1,9 @@
 import { format } from 'date-fns';
-import { View, Text, StyleSheet, Dimensions, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { Card } from '@rneui/themed';
 import { ja } from 'date-fns/locale';
 import type { AppHabitStatistics } from "../types/type";
+import { useNavigation } from '@react-navigation/native';
 
 interface HabitCardProps {
   habit: AppHabitStatistics;
@@ -13,7 +14,23 @@ const CARD_MARGIN = 8;
 const CARD_WIDTH = (width - CARD_MARGIN * 4) / 2; // 2列の場合の幅
 
 export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
+  const navigation = useNavigation();
+
+  const handlePress = () => {
+    navigation.navigate('habits', {
+      screen: '[id]',
+      params: {
+        id: habit.id,
+      },
+    });
+    
+  };
+
   return (
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
     <Card containerStyle={styles.cardContainer}>
       <View style={styles.cardContent}>
         <Text style={styles.habitName} numberOfLines={2}>
@@ -44,6 +61,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit }) => {
         </View>
       </View>
     </Card>
+    </TouchableOpacity>
   );
 };
 
