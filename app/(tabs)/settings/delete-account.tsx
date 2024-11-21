@@ -4,6 +4,7 @@ import { Button, Text } from '@rneui/themed';
 import { router } from 'expo-router';
 import { supabase } from '../../../libs/supabase';
 
+
 export default function DeleteAccountScreen() {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -48,6 +49,16 @@ export default function DeleteAccountScreen() {
       <Text style={styles.note}>
         この操作は取り消すことができません。
       </Text>
+
+      <View style={styles.buttonsContainer}>
+
+
+    <Button
+       title="キャンセル"
+       onPress={() => router.back()}
+       containerStyle={styles.cancelButtonContainer}
+     />
+
       <Button
         title="アカウントを削除"
         onPress={handleDeleteAccount}
@@ -55,6 +66,8 @@ export default function DeleteAccountScreen() {
         buttonStyle={styles.deleteButton}
         titleStyle={styles.deleteButtonText}
       />
+
+    </View>
     </View>
   );
 }
@@ -84,4 +97,11 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontSize: 16,
   },
+  buttonsContainer: {
+    gap: 20
+  },
+
+  cancelButtonContainer: {
+    marginTop: 20
+  }
 });

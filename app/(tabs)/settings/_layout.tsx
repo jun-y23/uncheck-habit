@@ -12,7 +12,7 @@ export default function Layout() {
         headerShown: false,
       }}>
       <Stack.Screen name="index" options={{
-        headerShown: true, // ヘッダーを表示
+        headerShown: false,
         headerTitle: '設定', // ヘッダータイトルを非表示
       }} />
       <Stack.Screen name="delete-account" options={{  

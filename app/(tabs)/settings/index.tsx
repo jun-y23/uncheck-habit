@@ -1,7 +1,8 @@
-import { Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ListItem } from '@rneui/themed';
 import { Linking } from 'react-native';
+import {Link} from 'expo-router';
 
 export default function Settings() {
 	const openPrivacyPolicy = () => {
@@ -11,8 +12,6 @@ export default function Settings() {
 	const openTerms = () => {
 		Linking.openURL('https://legal.omochi-tech.com/habitore/terms.html');
 	};
- 
-
 	
 	return (
 		<SafeAreaView>
@@ -35,6 +34,28 @@ export default function Settings() {
        </ListItem.Content>
        <ListItem.Chevron />
      </ListItem>
+
+		 <ListItem containerStyle={styles.deleteAccount}>
+ <ListItem.Content>
+   <Link href="/settings/delete-account" asChild>
+     <Pressable>
+       <ListItem.Title style={styles.deleteText}>アカウントを削除</ListItem.Title>
+     </Pressable>
+   </Link>
+ </ListItem.Content>
+</ListItem>
 		</SafeAreaView>
 	);
 }
+
+const styles = StyleSheet.create({
+	deleteAccount: {
+		marginTop: 'auto',
+		marginBottom: 20,
+		backgroundColor: 'transparent'
+	},
+	deleteText: {
+		color: '#FF3B30',
+		textAlign: 'center',
+	}
+ });
