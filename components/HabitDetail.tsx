@@ -10,7 +10,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Text, Button, Icon, Dialog } from '@rneui/themed';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval,
+  getDay,
+  addDays,
+  subDays,
+  startOfWeek,
+  endOfWeek
+} from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../libs/supabase';
@@ -44,37 +54,21 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
   const [logs, setLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 習慣名の更新
-  const updateHabitName = async () => {
-    try {
-      const { error } = await supabase
-        .from('habits')
-        .update({ name })
-        .eq('id', id);
+  // // 習慣の削除
+  // const deleteHabit = async () => {
+  //   try {
+  //     const { error } = await supabase
+  //       .from('habits')
+  //       .update({ is_archived: true })
+  //       .eq('id', id);
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      setIsEditing(false);
-    } catch (error) {
-      Alert.alert('エラー', '名前の更新に失敗しました');
-    }
-  };
-
-  // 習慣の削除
-  const deleteHabit = async () => {
-    try {
-      const { error } = await supabase
-        .from('habits')
-        .update({ is_archived: true })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('エラー', '削除に失敗しました');
-    }
-  };
+  //     navigation.goBack();
+  //   } catch (error) {
+  //     Alert.alert('エラー', '削除に失敗しました');
+  //   }
+  // };
 
   const fetchHabit = useCallback(async () => {
     try {
@@ -139,43 +133,86 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
     fetchMonthLogs(newMonth);
   };
 
-  // カレンダーグリッド表示
-  const renderCalendar = () => {
-    const start = startOfMonth(selectedMonth);
-    const end = endOfMonth(selectedMonth);
-    const days = eachDayOfInterval({ start, end });
+  const renderCalendar = (
+  ) => {
+    const monthStart = startOfMonth(selectedMonth);
+  const monthEnd = endOfMonth(selectedMonth);
+  
+  // カレンダーの開始日と終了日を取得（前月末と翌月初めを含む）
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  
+  // カレンダーに表示する全ての日付を取得
+  const calendarDays = eachDayOfInterval({ 
+    start: calendarStart, 
+    end: calendarEnd 
+  });
 
-    return (
+  // 曜日の表示
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+
+  return (
+    <View style={styles.calendarContainer}>
+      {/* 曜日ヘッダー */}
+      <View style={styles.weekDayHeader}>
+        {weekDays.map((day, index) => (
+          <View key={index} style={styles.weekDayCell}>
+            <Text style={[
+              styles.weekDayText,
+              index === 0 ? styles.sundayText : index === 6 ? styles.saturdayText : null
+            ]}>
+              {day}
+            </Text>
+          </View>
+        ))}
+      </View>
+
       <View style={styles.calendar}>
-        {days.map((day, index) => {
+        {calendarDays.map((day) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const log = logs.find(l => l.date === dateStr);
+          const colors = getStatusColor(log?.status);
+          const isToday = format(new Date(), 'yyyy-MM-dd') === dateStr;
+          const isCurrentMonth = day.getMonth() === selectedMonth.getMonth();
           
           return (
             <TouchableOpacity
               key={dateStr}
               style={[
                 styles.calendarCell,
-                { backgroundColor: getStatusColor(log?.status) }
+                { backgroundColor: colors.background },
+                isToday && styles.todayCell,
+                !isCurrentMonth && styles.otherMonthCell
               ]}
               onPress={() => handleDayPress(dateStr, log)}
             >
-              <Text style={styles.dayText}>{format(day, 'd')}</Text>
-              {log?.notes && (
-                <Icon
-                  name="note"
-                  size={12}
-                  color="#666"
-                  style={styles.noteIcon}
-                />
+              <Text style={[
+                styles.dayText,
+                { color: colors.text },
+                !isCurrentMonth && styles.otherMonthText
+              ]}>
+                {format(day, 'd')}
+              </Text>
+              {log?.notes && isCurrentMonth && (
+                <View style={styles.noteIndicator}>
+                  <Icon
+                    name="message-circle"
+                    type="feather"
+                    size={10}
+                    color={colors.text}
+                  />
+                </View>
               )}
             </TouchableOpacity>
           );
         })}
       </View>
-    );
+    </View>
+  );
+
   };
 
+  
   React.useEffect(() => {
     fetchMonthLogs(selectedMonth);
   }, [fetchMonthLogs, selectedMonth]);
@@ -192,21 +229,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
     <ScrollView style={styles.container}>
       {/* 習慣名編集セクション */}
       <View style={styles.nameSection}>
-        {isEditing ? (
-          <View style={styles.editContainer}>
-            <TextInput
-              value={habit.name}
-              onChangeText={() => {}}
-              style={styles.nameInput}
-              autoFocus
-            />
-            <Button
-              title="保存"
-              onPress={updateHabitName}
-              buttonStyle={styles.saveButton}
-            />
-          </View>
-        ) : (
           <View style={styles.nameContainer}>
             <Text style={styles.nameText}>{habit.name}</Text>
             <Icon
@@ -215,7 +237,7 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
               containerStyle={styles.editIcon}
             />
           </View>
-        )}
+        
       </View>
 
       {/* 月選択セクション */}
@@ -240,16 +262,14 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
         renderCalendar()
       )}
 
-      {/* 削除ボタン */}
-      <Button
+      {/* <Button
         title="習慣を削除"
         onPress={() => setIsDeleteDialogVisible(true)}
         buttonStyle={styles.deleteButton}
         type="outline"
       />
-
-      {/* 削除確認ダイアログ */}
-      <Dialog
+削除確認ダイアログ */}
+      {/* <Dialog
         isVisible={isDeleteDialogVisible}
         onBackdropPress={() => setIsDeleteDialogVisible(false)}
       >
@@ -266,7 +286,7 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
             titleStyle={{ color: 'red' }}
           />
         </Dialog.Actions>
-      </Dialog>
+      </Dialog> */}
     </ScrollView>
   );
 };
@@ -320,27 +340,74 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
+  weekDayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    backgroundColor: '#F2F2F7',
+  },
+
+  weekDayCell: {
+    width: (Dimensions.get('window').width - 48) / 7,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  weekDayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666666',
+  },
+  calendarContainer: {
+    marginTop: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    padding: 8,
+  },
+  sundayText: {
+    color: '#FF5252',
+  },
+  saturdayText: {
+    color: '#2196F3',
+  },
   calendar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 8,
+    justifyContent: 'space-between',
   },
   calendarCell: {
-    width: (Dimensions.get('window').width - 32) / 7,
+    width: (Dimensions.get('window').width - 48) / 7,
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 2,
-    borderRadius: 4,
+    margin: 1,
+    borderRadius: 8,
+    position: 'relative',
+  },
+  todayCell: {
+    borderWidth: 2,
+    borderColor: '#0366D6',
+  },
+  otherMonthCell: {
+    opacity: 0.3,
   },
   dayText: {
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '500',
   },
-  noteIcon: {
+  otherMonthText: {
+    color: '#999999',
+  },
+  noteIndicator: {
     position: 'absolute',
     bottom: 4,
     right: 4,
   },
+
   deleteButton: {
     margin: 16,
     borderColor: 'red',

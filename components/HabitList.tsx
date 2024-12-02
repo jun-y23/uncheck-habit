@@ -10,7 +10,6 @@ const CARD_WIDTH = (width - CARD_MARGIN * 4) / 2;
 
 export const HabitList: React.FC = () => {
   const { statistics, isLoading, error, refetch } = useHabitStatistics();
-  console.log('statistics:', statistics);
 
   if (isLoading) {
     return <ActivityIndicator />;

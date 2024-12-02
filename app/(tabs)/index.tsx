@@ -12,7 +12,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarOverlay from "../../components/CalendarOverlay";
 import type { HabitLogData } from "../../components/CalendarOverlay";
-import { supabase } from "../../libs/supabase";
+import {useHabits} from "../../hooks/useHabits"
 import type { Habit } from "../../types/type";
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
@@ -32,7 +32,6 @@ const HomeScreen = () => {
 	const router = useRouter();
 	const today = format(new Date(), "yyyy-MM-dd");
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
-	const [habits, setHabits] = useState<Habit[]>([]);
 	
   const [isVisible, setIsVisible] = useState(false);
   const [initialData, setInitialData] = useState<HabitLogData | null>(null);
@@ -54,22 +53,8 @@ const HomeScreen = () => {
     setInitialData(null);
   }, []);
 
-	useEffect(() => {
-		fetchHabitsAndLogs();
-	}, []);
 
-	const fetchHabitsAndLogs = async () => {
-		// Placeholder for API call
-		const { data: fetchedHabits, error } = await supabase
-			.from("habits")
-			.select("id, name, icon");
-
-		if (error) {
-			return;
-		}
-
-		setHabits(fetchedHabits || []);
-	};
+	const {habits} = useHabits()
 
 	const goToPreviousWeek = () => {
 		setCurrentDate((prevDate) => subDays(prevDate, 6));
@@ -172,6 +157,8 @@ interface HabitListProps {
 const HabitList = (props: HabitListProps) => {
 	const { habits, startDate, onClickCell } = props;
 
+	console.log(habits)
+
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
 		const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
 		const date = addDays(start, index);
@@ -240,6 +227,8 @@ const HabitRow: React.FC<HabitRowProps> = ({
       console.error('Habit logs error:', error);
     }
   });
+
+	console.log(logs)
 
   const animatePress = useCallback(() => {
     Animated.sequence([
