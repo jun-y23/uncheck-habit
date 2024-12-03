@@ -47,8 +47,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
   
   const { id } = props
 
-  console.log(id)
-
   const [habit, setHabit] = useState<any>();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -83,20 +81,20 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
   }
 
   // // 習慣の削除
-  // const deleteHabit = async () => {
-  //   try {
-  //     const { error } = await supabase
-  //       .from('habits')
-  //       .update({ is_archived: true })
-  //       .eq('id', id);
+  const deleteHabit = async () => {
+    try {
+      const { error } = await supabase
+        .from('habits')
+        .update({ is_archived: true })
+        .eq('id', id);
 
-  //     if (error) throw error;
+      if (error) throw error;
 
-  //     navigation.goBack();
-  //   } catch (error) {
-  //     Alert.alert('エラー', '削除に失敗しました');
-  //   }
-  // };
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('エラー', '削除に失敗しました');
+    }
+  };
 
   const fetchHabit = useCallback(async () => {
     try {
@@ -262,8 +260,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
-  console.log(habit.name)
-
   return (
     <ScrollView style={styles.container}>
       {/* 習慣名編集セクション */}
@@ -275,7 +271,12 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
               onPress={() => setIsEditing(true)}
               containerStyle={styles.editIcon}
             />
+            <Icon
+            name="delete"
+            onPress={() => setIsDeleteDialogVisible(true)}
+          />
           </View>
+          
       </View>
 
       {/* 月選択セクション */}
@@ -300,31 +301,27 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
         renderCalendar()
       )}
 
-      {/* <Button
-        title="習慣を削除"
-        onPress={() => setIsDeleteDialogVisible(true)}
-        buttonStyle={styles.deleteButton}
-        type="outline"
-      />
-削除確認ダイアログ */}
-      {/* <Dialog
-        isVisible={isDeleteDialogVisible}
-        onBackdropPress={() => setIsDeleteDialogVisible(false)}
-      >
-        <Dialog.Title title="習慣の削除" />
-        <Text>本当にこの習慣を削除しますか？</Text>
-        <Dialog.Actions>
-          <Dialog.Button
-            title="キャンセル"
-            onPress={() => setIsDeleteDialogVisible(false)}
-          />
-          <Dialog.Button
-            title="削除"
-            onPress={deleteHabit}
-            titleStyle={{ color: 'red' }}
-          />
-        </Dialog.Actions>
-      </Dialog> */}
+    <Dialog
+      isVisible={isDeleteDialogVisible}
+      onBackdropPress={() => setIsDeleteDialogVisible(false)}
+    >
+      <Dialog.Title title="習慣の削除" />
+      <Text>本当にこの習慣を削除しますか？</Text>
+      <Dialog.Actions>
+        <Dialog.Button
+          title="キャンセル"
+          onPress={() => setIsDeleteDialogVisible(false)}
+          titleStyle={{}} // 空のオブジェクトを明示的に渡す
+        />
+        <Dialog.Button
+          title="削除"
+          onPress={deleteHabit}
+          titleStyle={{ color: 'red' }}
+        />
+      </Dialog.Actions>
+    </Dialog>
+
+
     </ScrollView>
   );
 };

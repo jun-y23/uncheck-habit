@@ -23,6 +23,7 @@ export function useHabits() {
       const { data, error } = await supabase
         .from("habits")
         .select("*")
+        .eq("is_archived", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

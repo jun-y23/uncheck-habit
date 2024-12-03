@@ -14,6 +14,7 @@ export const useHabitStatistics = () => {
       const { data, error } = await supabase
         .from("habit_statistics_view")
         .select("*")
+        .eq("is_archived", false)
         .order("achievement_rate", { ascending: false });
 
       if (error) throw error;

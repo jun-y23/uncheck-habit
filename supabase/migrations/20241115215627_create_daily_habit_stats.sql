@@ -151,6 +151,7 @@ SELECT
     h.name,
     h.start_date,
     h.user_id,
+    h.is_archived,
     COALESCE(s.total_days, 0) as total_days,
     COALESCE(s.achieved_days, 0) as achieved_days,
     COALESCE(s.achievement_rate, 0) as achievement_rate,
