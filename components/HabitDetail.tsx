@@ -106,7 +106,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
         .eq('id', id)
         .single()
 
-        console.log(data, error, 'log')
         setHabit(data)
 
       if (error) throw error;

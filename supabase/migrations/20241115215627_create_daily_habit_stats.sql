@@ -159,7 +159,8 @@ FROM public.habits h
 LEFT JOIN public.habit_daily_statistics s 
     ON h.id = s.habit_id 
     AND s.calculated_at = CURRENT_DATE
-WHERE NOT h.is_archived;
+WHERE NOT h.is_archived
+AND auth.uid() = user_id;
 
 -- ビューの権限設定
 GRANT SELECT ON public.habit_statistics_view TO authenticated, service_role;
