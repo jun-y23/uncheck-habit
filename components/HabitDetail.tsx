@@ -104,9 +104,10 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
         .from('habits')
         .select('*')
         .eq('id', id)
+        .single()
 
         console.log(data, error, 'log')
-        setHabit(data[0])
+        setHabit(data)
 
       if (error) throw error;
       
