@@ -16,11 +16,12 @@ import {
   endOfMonth, 
   eachDayOfInterval,
   getDay,
-  addDays,
-  subDays,
   startOfWeek,
-  endOfWeek
+  endOfWeek,
+  isAfter,
+  startOfDay
 } from 'date-fns';
+
 import { ja } from 'date-fns/locale';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../libs/supabase';
@@ -53,6 +54,31 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [logs, setLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const today = startOfDay(new Date());
+
+  const handleDayPress = () => {
+    console.log('')
+  }
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'achieved':
+        return {
+          background: '#4CAF50',
+          text: '#FFFFFF'
+        };
+      case 'not_achieved':
+        return {
+          background: '#FF5252',
+          text: '#800000'
+        };
+      default:
+        return {
+          background: '#E0E0E0',
+          text: '#666666'
+        };
+    }
+  }
 
   // // 習慣の削除
   // const deleteHabit = async () => {
@@ -172,8 +198,10 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
           const dateStr = format(day, 'yyyy-MM-dd');
           const log = logs.find(l => l.date === dateStr);
           const colors = getStatusColor(log?.status);
-          const isToday = format(new Date(), 'yyyy-MM-dd') === dateStr;
+          const isToday = format(today, 'yyyy-MM-dd') === dateStr;
           const isCurrentMonth = day.getMonth() === selectedMonth.getMonth();
+          const dayOfWeek = getDay(day);
+          const isFutureDate = isAfter(startOfDay(day), today);
           
           return (
             <TouchableOpacity
@@ -182,18 +210,22 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
                 styles.calendarCell,
                 { backgroundColor: colors.background },
                 isToday && styles.todayCell,
-                !isCurrentMonth && styles.otherMonthCell
+                isFutureDate && styles.futureDateCell
               ]}
-              onPress={() => handleDayPress(dateStr, log)}
+              onPress={() => !isFutureDate && handleDayPress(dateStr, log)}
+              disabled={isFutureDate}
             >
               <Text style={[
                 styles.dayText,
                 { color: colors.text },
-                !isCurrentMonth && styles.otherMonthText
+                !isCurrentMonth && styles.otherMonthText,
+                dayOfWeek === 0 && styles.sundayText,
+                dayOfWeek === 6 && styles.saturdayText,
+                isFutureDate && styles.futureDateText
               ]}>
                 {format(day, 'd')}
               </Text>
-              {log?.notes && isCurrentMonth && (
+              {log?.notes && isCurrentMonth && !isFutureDate && (
                 <View style={styles.noteIndicator}>
                   <Icon
                     name="message-circle"
@@ -207,6 +239,7 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
           );
         })}
       </View>
+
     </View>
   );
 
@@ -379,12 +412,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
+  futureDateText: {
+    color: '#C7C7CC',
+  },
+  futureDateCell: {
+    backgroundColor: '#F8F8F8',
+  },
   calendarCell: {
     width: (Dimensions.get('window').width - 48) / 7,
+    height: (Dimensions.get('window').width - 48) / 7,
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 1,
+    margin: 1.5,
     borderRadius: 8,
     position: 'relative',
   },
