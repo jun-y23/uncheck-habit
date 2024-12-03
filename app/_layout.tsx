@@ -22,6 +22,7 @@ export default function RootLayout() {
 	});
 
 	const { session, isLoading  } = useSession();
+	console.log(session)
 
 	useEffect(() => {
 		if (loaded) {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -46,6 +46,8 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
   const navigation = useNavigation();
   
   const { id } = props
+
+  console.log(id)
 
   const [habit, setHabit] = useState<any>();
 
@@ -103,15 +105,17 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
         .select('*')
         .eq('id', id)
 
-      if (error) throw error;
-      console.log('data:', error);
+        console.log(data, error, 'log')
+        setHabit(data[0])
 
-      setHabit(data);
+      if (error) throw error;
+      
     } catch (error) {
       console.log('data:', error);
       Alert.alert('エラー', 'データの取得に失敗しました');
     }
   }, [id]);
+
 
   // 月単位のログ取得
   const fetchMonthLogs = useCallback(async (date: Date) => {
@@ -246,17 +250,19 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
   };
 
   
-  React.useEffect(() => {
+  useEffect(() => {
     fetchMonthLogs(selectedMonth);
   }, [fetchMonthLogs, selectedMonth]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchHabit();
   }, [fetchHabit]);
 
   if (!habit) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
+
+  console.log(habit.name)
 
   return (
     <ScrollView style={styles.container}>
@@ -270,7 +276,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (props: HabitDetail
               containerStyle={styles.editIcon}
             />
           </View>
-        
       </View>
 
       {/* 月選択セクション */}
@@ -337,10 +342,10 @@ const styles = StyleSheet.create({
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   nameText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
   },
   editContainer: {
