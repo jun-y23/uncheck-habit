@@ -1,7 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
 export default function Layout() {
 	const router = useRouter();

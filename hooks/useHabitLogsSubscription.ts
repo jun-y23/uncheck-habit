@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 import type { Database } from "../types/schema";
-import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
 type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at">;
@@ -89,7 +89,7 @@ export const useHabitLogsSubscription = ({
 		} finally {
 			setIsInitialLoading(false);
 		}
-	}, [habitId, currentDate]);
+	}, [habitId, startDateStr, endDateStr]);
 
 	useEffect(() => {
 		let mounted = true;
@@ -137,7 +137,7 @@ export const useHabitLogsSubscription = ({
 				subscription.unsubscribe();
 			}
 		};
-	}, [habitId, currentDate]);
+	}, [habitId, subscription, fetchLogs]);
 
 	const updateLog = async (props: UpdateLogProps) => {
 		const { logID, date, status, notes } = props;

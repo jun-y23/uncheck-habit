@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ListItem } from "@rneui/themed";
-import { Linking } from "react-native";
 import { Link } from "expo-router";
+import { Pressable, StyleSheet } from "react-native";
+import { Linking } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
 	const openPrivacyPolicy = () => {

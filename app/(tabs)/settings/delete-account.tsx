@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { View, Alert, StyleSheet } from "react-native";
 import { Button, Text } from "@rneui/themed";
 import { router } from "expo-router";
+import { useState } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 import { supabase } from "../../../libs/supabase";
 
 export default function DeleteAccountScreen() {

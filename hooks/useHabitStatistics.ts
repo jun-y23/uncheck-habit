@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 import type { AppHabitStatistics } from "../types/type";
 
@@ -7,7 +7,7 @@ export const useHabitStatistics = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
-	const fetchStatistics = async () => {
+	const fetchStatistics = useCallback(async () => {
 		try {
 			setIsLoading(true);
 
@@ -28,11 +28,11 @@ export const useHabitStatistics = () => {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchStatistics();
-	}, []);
+	}, [fetchStatistics]);
 
 	return {
 		statistics,

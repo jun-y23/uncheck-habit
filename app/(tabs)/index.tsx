@@ -252,7 +252,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 				notes: data?.notes ?? "",
 			});
 		},
-		[logs, updateLog, animatePress],
+		[updateLog, animatePress, habit.id],
 	);
 
 	const getCellColor = useCallback((status: HabitStatus): string => {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
 		borderBottomColor: "#F0F0F0",
 		backgroundColor: "white",
 	},
-	// 共通のセルスタイル
+	// 共通の��ルスタイル
 	cell: {
 		height: 56,
 		justifyContent: "center",

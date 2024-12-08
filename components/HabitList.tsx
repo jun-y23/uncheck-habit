@@ -1,14 +1,14 @@
-import React from "react";
+import { Button } from "@rneui/themed";
+import type React from "react";
 import {
-	View,
-	Text,
-	StyleSheet,
+	ActivityIndicator,
 	Dimensions,
 	FlatList,
-	ActivityIndicator,
 	RefreshControl,
+	StyleSheet,
+	Text,
+	View,
 } from "react-native";
-import { Button } from "@rneui/themed";
 import { useHabitStatistics } from "../hooks/useHabitStatistics";
 import { HabitCard } from "./HabitCard";
 

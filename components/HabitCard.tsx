@@ -1,15 +1,15 @@
-import { format } from "date-fns";
-import {
-	View,
-	Text,
-	StyleSheet,
-	Dimensions,
-	TouchableOpacity,
-} from "react-native";
-import { Card } from "@rneui/themed";
-import { ja } from "date-fns/locale";
-import type { AppHabitStatistics } from "../types/type";
 import { useNavigation } from "@react-navigation/native";
+import { Card } from "@rneui/themed";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import {
+	Dimensions,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
+import type { AppHabitStatistics } from "../types/type";
 
 interface HabitCardProps {
 	habit: AppHabitStatistics;
