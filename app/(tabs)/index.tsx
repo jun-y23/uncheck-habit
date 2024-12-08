@@ -1,20 +1,25 @@
 import { useHabitLogsSubscription } from "@/hooks/useHabitLogsSubscription";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { Button, Icon, Text } from "@rneui/themed";
 import { addDays, format, subDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useRouter } from "expo-router";
 import type React from "react";
-import { useCallback, useEffect, useState, useRef } from "react";
-import { FlatList, StyleSheet, TouchableOpacity, View, Animated,
-  ActivityIndicator,
- } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	ActivityIndicator,
+	Animated,
+	FlatList,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarOverlay from "../../components/CalendarOverlay";
 import type { HabitLogData } from "../../components/CalendarOverlay";
-import {useHabits} from "../../hooks/useHabits"
+import { useHabits } from "../../hooks/useHabits";
 import type { Habit } from "../../types/type";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -32,29 +37,28 @@ const HomeScreen = () => {
 	const router = useRouter();
 	const today = format(new Date(), "yyyy-MM-dd");
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
-	
-  const [isVisible, setIsVisible] = useState(false);
-  const [initialData, setInitialData] = useState<HabitLogData | null>(null);
 
-  const handleOpen = (props: HabitLogData) => {
-    setInitialData({
-      habitID: props.habitID,
-      status: props.status,
-      date: new Date(props.date),
-      notes: props.notes,
+	const [isVisible, setIsVisible] = useState(false);
+	const [initialData, setInitialData] = useState<HabitLogData | null>(null);
+
+	const handleOpen = (props: HabitLogData) => {
+		setInitialData({
+			habitID: props.habitID,
+			status: props.status,
+			date: new Date(props.date),
+			notes: props.notes,
 			logID: props?.logID ?? undefined,
-			onUpdateLog: props.onUpdateLog
-    });
-    setIsVisible(true);
-  };
+			onUpdateLog: props.onUpdateLog,
+		});
+		setIsVisible(true);
+	};
 
-  const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setInitialData(null);
-  }, []);
+	const handleClose = useCallback(() => {
+		setIsVisible(false);
+		setInitialData(null);
+	}, []);
 
-
-	const {habits} = useHabits()
+	const { habits } = useHabits();
 
 	const goToPreviousWeek = () => {
 		setCurrentDate((prevDate) => subDays(prevDate, 6));
@@ -102,10 +106,10 @@ const HomeScreen = () => {
 				</View>
 			</SafeAreaView>
 			<CalendarOverlay
-        isVisible={isVisible}
-        initialData={initialData}
-        onClose={handleClose}
-      />
+				isVisible={isVisible}
+				initialData={initialData}
+				onClose={handleClose}
+			/>
 		</GestureHandlerRootView>
 	);
 };
@@ -151,13 +155,11 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 interface HabitListProps {
 	habits: Habit[];
 	startDate: Date;
-	onClickCell: (habit: HabitLogData) => void
+	onClickCell: (habit: HabitLogData) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
 	const { habits, startDate, onClickCell } = props;
-
-	console.log(habits)
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
 		const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
@@ -203,73 +205,73 @@ const HabitList = (props: HabitListProps) => {
 };
 
 interface HabitRowProps {
-  habit: Habit;
-  currentDate: Date;
-	onClickCell: (habit: HabitLogData) => void
+	habit: Habit;
+	currentDate: Date;
+	onClickCell: (habit: HabitLogData) => void;
 }
 
 const HabitRow: React.FC<HabitRowProps> = ({
-  habit,
-  currentDate,
-	onClickCell
+	habit,
+	currentDate,
+	onClickCell,
 }) => {
 	const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const {
-    logs,
-    isInitialLoading,
-    updatingDates,
-    updateLog
-  } = useHabitLogsSubscription({
-    habitId: habit.id,
-    _currentDate: currentDate,
-    onError: (error) => {
-      console.error('Habit logs error:', error);
-    }
-  });
-
-	console.log(logs)
-
-  const animatePress = useCallback(() => {
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 0.7,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim]);
-
-  const toggleStatus = useCallback(async (data: HabitLogData) => {
-    animatePress();
-    await updateLog({
-			logID: data?.logID,
-			habitID: habit.id,
-			status: data.status,
-			date: data.date,
-			notes: data?.notes ?? '',
+	const { logs, isInitialLoading, updatingDates, updateLog } =
+		useHabitLogsSubscription({
+			habitId: habit.id,
+			_currentDate: currentDate,
+			onError: (error) => {
+				console.error("Habit logs error:", error);
+			},
 		});
-  }, [logs, updateLog, animatePress]);
 
-  const getCellColor = useCallback((status: HabitStatus): string => {
-    switch (status) {
-      case "achieved":
-        return "#00FF00";
-      case "not_achieved":
-        return "#FF7F7F";
-      default:
-        return "#EBEDF0";
-    }
-  }, []);
+	const animatePress = useCallback(() => {
+		Animated.sequence([
+			Animated.timing(fadeAnim, {
+				toValue: 0.7,
+				duration: 100,
+				useNativeDriver: true,
+			}),
+			Animated.timing(fadeAnim, {
+				toValue: 1,
+				duration: 100,
+				useNativeDriver: true,
+			}),
+		]).start();
+	}, [fadeAnim]);
 
-  const getOpacity = useCallback((date: string) => {
-    return updatingDates.has(date) ? 0.6 : 1;
-  }, [updatingDates]);
+	const toggleStatus = useCallback(
+		async (data: HabitLogData) => {
+			animatePress();
+			await updateLog({
+				logID: data?.logID,
+				habitID: habit.id,
+				status: data.status,
+				date: data.date,
+				notes: data?.notes ?? "",
+			});
+		},
+		[logs, updateLog, animatePress],
+	);
+
+	const getCellColor = useCallback((status: HabitStatus): string => {
+		switch (status) {
+			case "achieved":
+				return "#00FF00";
+			case "not_achieved":
+				return "#FF7F7F";
+			default:
+				return "#EBEDF0";
+		}
+	}, []);
+
+	const getOpacity = useCallback(
+		(date: string) => {
+			return updatingDates.has(date) ? 0.6 : 1;
+		},
+		[updatingDates],
+	);
 
 	const handleOpen = (props: HabitLogData) => {
 		onClickCell({
@@ -278,76 +280,78 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			date: new Date(props.date),
 			notes: props.notes,
 			logID: props?.logID ?? undefined,
-			onUpdateLog: toggleStatus
-		})
+			onUpdateLog: toggleStatus,
+		});
+	};
+
+	if (isInitialLoading) {
+		return (
+			<View style={styles.loadingContainer}>
+				<ActivityIndicator size="small" color="#0000ff" />
+			</View>
+		);
 	}
 
-  if (isInitialLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#0000ff" />
-      </View>
-    );
-  }
+	return (
+		<View style={styles.container}>
+			<Animated.View style={[styles.habitRow, { opacity: fadeAnim }]}>
+				<View style={[styles.cell, styles.habitNameCell]}>
+					<View style={styles.habitContainer}>
+						{habit.icon && (
+							<Icon
+								name={habit.icon}
+								size={16}
+								style={styles.icon}
+								containerStyle={styles.iconContainer}
+							/>
+						)}
+						<Text style={styles.habitName} numberOfLines={1}>
+							{habit.name}
+						</Text>
+					</View>
+				</View>
 
-  return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.habitRow, { opacity: fadeAnim }]}>
-        <View style={[styles.cell, styles.habitNameCell]}>
-          <View style={styles.habitContainer}>
-            {habit.icon && (
-              <Icon
-                name={habit.icon}
-                size={16}
-                style={styles.icon}
-                containerStyle={styles.iconContainer}
-              />
-            )}
-            <Text style={styles.habitName} numberOfLines={1}>
-              {habit.name}
-            </Text>
-          </View>
-        </View>
+				{logs.map((log, index) => {
+					const isUpdating = updatingDates.has(log.date);
 
-        {logs.map((log, index) => {
-          const isUpdating = updatingDates.has(log.date);
-
-          return (
-            <TouchableOpacity
-              key={log.date}
-              style={[styles.cell, styles.dateCell]}
-              onPress={() => handleOpen({
-								habitID: habit.id,
-								status: log.status,
-								date: new Date(log.date),
-								notes: log?.notes ?? undefined,
-								logID: log.id
-							})}
-              disabled={isUpdating}
-            >
-              <Animated.View
-                style={[
-                  styles.checkBox,
-                  {
-                    backgroundColor: getCellColor(log.status),
-                    opacity: getOpacity(log.date)
-                  }
-                ]}
-              >
-                {isUpdating && (
-                  <ActivityIndicator
-                    size="small"
-                    color="#ffffff"
-                    style={styles.miniLoader}
-                  />
-                )}
-              </Animated.View>
-            </TouchableOpacity>
-          );
-        })}
-      </Animated.View>
-    </View>
-  );
+					return (
+						<TouchableOpacity
+							key={log.date}
+							style={[styles.cell, styles.dateCell]}
+							onPress={() =>
+								handleOpen({
+									habitID: habit.id,
+									status: log.status,
+									date: new Date(log.date),
+									notes: log?.notes ?? undefined,
+									logID: log.id,
+								})
+							}
+							disabled={isUpdating}
+						>
+							<Animated.View
+								style={[
+									styles.checkBox,
+									{
+										backgroundColor: getCellColor(log.status),
+										opacity: getOpacity(log.date),
+									},
+								]}
+							>
+								{isUpdating && (
+									<ActivityIndicator
+										size="small"
+										color="#ffffff"
+										style={styles.miniLoader}
+									/>
+								)}
+							</Animated.View>
+						</TouchableOpacity>
+					);
+				})}
+			</Animated.View>
+		</View>
+	);
 };
 
 const styles = StyleSheet.create({
@@ -359,10 +363,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	loadingContainer: {
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+		padding: 16,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	buttonContainer: {
 		position: "absolute",
 		bottom: 20,
@@ -463,12 +467,11 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 	},
 	miniLoader: {
-    position: 'absolute',
-  },
+		position: "absolute",
+	},
 	updatingCell: {
-    opacity: 0.7,
-  },
-
+		opacity: 0.7,
+	},
 });
 
 export default HomeScreen;
