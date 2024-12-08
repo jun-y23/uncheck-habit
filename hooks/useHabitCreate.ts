@@ -6,32 +6,32 @@ import { useSession } from "./useAuth";
 type HabitInsert = Database["public"]["Tables"]["habits"]["Insert"];
 
 export function useHabitCreate() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { session } = useSession();
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const { session } = useSession();
 
-  async function createHabit(habit: Omit<HabitInsert, "user_id">) {
-    try {
-      setLoading(true);
-      setError(null);
+	async function createHabit(habit: Omit<HabitInsert, "user_id">) {
+		try {
+			setLoading(true);
+			setError(null);
 
-      if (!session?.user) throw new Error("認証が必要です");
+			if (!session?.user) throw new Error("認証が必要です");
 
-      const { data, error } = await supabase
-        .from("habits")
-        .insert([{ ...habit, user_id: session.user.id }])
-        .single();
-      console.log(data, error);
+			const { data, error } = await supabase
+				.from("habits")
+				.insert([{ ...habit, user_id: session.user.id }])
+				.single();
+			console.log(data, error);
 
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "エラーが発生しました");
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			setError(error instanceof Error ? error.message : "エラーが発生しました");
+			return null;
+		} finally {
+			setLoading(false);
+		}
+	}
 
-  return { createHabit, loading, error };
+	return { createHabit, loading, error };
 }

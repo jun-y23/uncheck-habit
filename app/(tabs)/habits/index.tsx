@@ -1,14 +1,14 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { useHabits } from '../../../hooks/useHabits';
-import {HabitList} from '../../../components/HabitList';
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { useHabits } from "../../../hooks/useHabits";
+import { HabitList } from "../../../components/HabitList";
 
 export default function HabitListScreen() {
-  return (
+	return (
 		<SafeAreaView style={styles.safeArea}>
-      <HabitList />
-    </SafeAreaView>
-  );
+			<HabitList />
+		</SafeAreaView>
+	);
 }
 
 const styles = StyleSheet.create({
@@ -17,4 +17,3 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f5f5f5",
 	},
 });
-

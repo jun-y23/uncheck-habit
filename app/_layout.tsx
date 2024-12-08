@@ -21,7 +21,7 @@ export default function RootLayout() {
 		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
 	});
 
-	const { session, isLoading  } = useSession();
+	const { session, isLoading } = useSession();
 
 	useEffect(() => {
 		if (loaded) {
@@ -36,7 +36,10 @@ export default function RootLayout() {
 	return (
 		<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
 			<Stack>
-				<Stack.Screen name="(tabs)" options={{ headerShown: false, title:'ホーム' }} />
+				<Stack.Screen
+					name="(tabs)"
+					options={{ headerShown: false, title: "ホーム" }}
+				/>
 				<Stack.Screen name="+not-found" />
 				<Stack.Screen
 					name="habit-selection"

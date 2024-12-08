@@ -18,9 +18,7 @@ import Animated, {
 	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
-import {
-	format,
-} from "date-fns";
+import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -34,11 +32,15 @@ const habitLogSchema = z.object({
 	notes: z.string().max(200, "メモは200文字以内で入力してください").optional(),
 });
 
-const habitLogFormSchema = habitLogSchema.omit({ logID: true, date : true, habitID: true });
+const habitLogFormSchema = habitLogSchema.omit({
+	logID: true,
+	date: true,
+	habitID: true,
+});
 
 export type HabitLogData = z.infer<typeof habitLogSchema> & {
 	onUpdateLog?: (log: HabitLogData) => Promise<void>;
-}
+};
 export type HabitLogFormData = z.infer<typeof habitLogFormSchema>;
 
 interface CalendarOverlayProps {
@@ -54,14 +56,16 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
 
-	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>({
-		resolver: zodResolver(habitLogFormSchema),
-		values: {  // defaultValues の代わりに values を使用
-      status: initialData?.status || "unchecked",
-      notes: initialData?.notes,
-    }
-	});
-
+	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>(
+		{
+			resolver: zodResolver(habitLogFormSchema),
+			values: {
+				// defaultValues の代わりに values を使用
+				status: initialData?.status || "unchecked",
+				notes: initialData?.notes,
+			},
+		},
+	);
 
 	useEffect(() => {
 		if (isVisible) {
@@ -81,7 +85,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 		translateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 }, () => {
 			runOnJS(onClose)();
 		});
-    reset();
+		reset();
 	}, [onClose, translateY, reset]);
 
 	const gestureHandler = useAnimatedGestureHandler({
@@ -103,7 +107,11 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 	});
 
 	const onSubmit = async (data: HabitLogFormData) => {
-		if (!initialData?.habitID || !initialData?.date || !initialData?.onUpdateLog) {
+		if (
+			!initialData?.habitID ||
+			!initialData?.date ||
+			!initialData?.onUpdateLog
+		) {
 			return;
 		}
 
@@ -115,7 +123,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			date: initialData.date,
 		};
 
-		await initialData.onUpdateLog(habitLogData)
+		await initialData.onUpdateLog(habitLogData);
 		reset();
 		handleClose();
 	};
@@ -134,7 +142,11 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 			<PanGestureHandler onGestureEvent={gestureHandler}>
 				<Animated.View style={[styles.contentContainer, rStyle]}>
 					<View style={styles.handle} />
-					<Text h4>{initialData?.date ? format(initialData.date, "M月d日（E）", { locale: ja }) : ""}</Text>
+					<Text h4>
+						{initialData?.date
+							? format(initialData.date, "M月d日（E）", { locale: ja })
+							: ""}
+					</Text>
 					<Controller
 						control={control}
 						name="status"

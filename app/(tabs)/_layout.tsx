@@ -5,8 +5,7 @@ import React from "react";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { usePathname } from 'expo-router';
-
+import { usePathname } from "expo-router";
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
@@ -18,7 +17,7 @@ export default function TabLayout() {
 		<Tabs
 			screenOptions={{
 				tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-				tabBarStyle: isHabitDetail ? { display: 'none' } : undefined
+				tabBarStyle: isHabitDetail ? { display: "none" } : undefined,
 			}}
 		>
 			<Tabs.Screen
