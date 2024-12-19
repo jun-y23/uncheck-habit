@@ -89,7 +89,8 @@ export const useHabitLogsSubscription = ({
 		} finally {
 			setIsInitialLoading(false);
 		}
-	}, [habitId, startDateStr, endDateStr]);
+		// ここ依存直すと動かなくなる
+	}, [habitId, currentDate]);
 
 	useEffect(() => {
 		let mounted = true;
@@ -137,7 +138,8 @@ export const useHabitLogsSubscription = ({
 				subscription.unsubscribe();
 			}
 		};
-	}, [habitId, subscription, fetchLogs]);
+		// ここ依存直すと動かなくなる
+	}, [habitId, currentDate]);
 
 	const updateLog = async (props: UpdateLogProps) => {
 		const { logID, date, status, notes } = props;
@@ -151,8 +153,8 @@ export const useHabitLogsSubscription = ({
 			// 楽観的更新
 			setLogs((currentLogs) =>
 				currentLogs.map((log) =>
-					log.date === updatingDate ? { ...log, status, notes } : log,
-				),
+					log.date === updatingDate ? { ...log, status, notes } : log
+				)
 			);
 
 			if (logID) {
