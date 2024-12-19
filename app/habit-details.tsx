@@ -104,13 +104,13 @@ const HabitDetailsScreen = () => {
 	return (
 		<ScrollView style={styles.container}>
 			<Text style={styles.title}>{habitData.name} の設定</Text>
-			<Text style={styles.label}>頻度</Text>
+			{/* <Text style={styles.label}>頻度</Text>
 			<View style={styles.frequencyContainer}>
 				<FrequencyOption type="daily" label="毎日" />
 				<FrequencyOption type="weekly" label="毎週" />
-			</View>
+			</View> */}
 
-			{frequencyType === "weekly" && (
+			{/* {frequencyType === "weekly" && (
 				<>
 					<Text style={styles.sublabel}>曜日を選択</Text>
 					<Controller
@@ -148,7 +148,7 @@ const HabitDetailsScreen = () => {
 						)}
 					/>
 				</>
-			)}
+			)} */}
 
 			<Text style={styles.label}>開始日</Text>
 			<Button
