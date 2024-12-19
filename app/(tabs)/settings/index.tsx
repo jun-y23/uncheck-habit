@@ -13,6 +13,10 @@ export default function Settings() {
 		Linking.openURL("https://legal.omochi-tech.com/habitore/terms.html");
 	};
 
+	const openContact = () => {
+		Linking.openURL("https://forms.gle/YdAtb3jFyXqKT7UFA");
+	};
+
 	return (
 		<SafeAreaView>
 			<ListItem onPress={openPrivacyPolicy} bottomDivider>
@@ -25,6 +29,13 @@ export default function Settings() {
 			<ListItem onPress={openTerms} bottomDivider>
 				<ListItem.Content>
 					<ListItem.Title>利用規約</ListItem.Title>
+				</ListItem.Content>
+				<ListItem.Chevron />
+			</ListItem>
+
+			<ListItem onPress={openContact} bottomDivider>
+				<ListItem.Content>
+					<ListItem.Title>お問い合わせ</ListItem.Title>
 				</ListItem.Content>
 				<ListItem.Chevron />
 			</ListItem>
