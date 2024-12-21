@@ -278,12 +278,12 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 			<View style={styles.nameSection}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.nameText}>{habit.name}</Text>
-					<Icon
+					{/* <Icon
 						name="edit"
 						onPress={() => setIsEditing(true)}
 						containerStyle={styles.editIcon}
 					/>
-					<Icon name="delete" onPress={() => setIsDeleteDialogVisible(true)} />
+					<Icon name="delete" onPress={() => setIsDeleteDialogVisible(true)} /> */}
 				</View>
 			</View>
 
