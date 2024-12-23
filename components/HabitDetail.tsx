@@ -69,17 +69,17 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 		switch (status) {
 			case "achieved":
 				return {
-					background: "#4CAF50",
+					background: "#00FF00",
 					text: "#FFFFFF",
 				};
 			case "not_achieved":
 				return {
-					background: "#FF5252",
+					background: "#FF7F7F",
 					text: "#800000",
 				};
 			default:
 				return {
-					background: "#E0E0E0",
+					background: "#EBEDF0",
 					text: "#666666",
 				};
 		}
