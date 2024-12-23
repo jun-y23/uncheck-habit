@@ -219,40 +219,38 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 						const isFutureDate = isAfter(startOfDay(day), today);
 
 						return (
-							<TouchableOpacity
-								key={dateStr}
-								style={[
-									styles.calendarCell,
-									{ backgroundColor: colors.background },
-									isToday && styles.todayCell,
-									isFutureDate && styles.futureDateCell,
-								]}
-								onPress={() => !isFutureDate && handleDayPress(dateStr, log)}
-								disabled={isFutureDate}
-							>
-								<Text
+								<View
+									key={dateStr}
 									style={[
-										styles.dayText,
-										{ color: colors.text },
-										!isCurrentMonth && styles.otherMonthText,
-										dayOfWeek === 0 && styles.sundayText,
-										dayOfWeek === 6 && styles.saturdayText,
-										isFutureDate && styles.futureDateText,
+										styles.calendarCell,
+										{ backgroundColor: colors.background },
+										isToday && styles.todayCell,
+										isFutureDate && styles.futureDateCell,
 									]}
 								>
-									{format(day, "d")}
-								</Text>
-								{log?.notes && isCurrentMonth && !isFutureDate && (
-									<View style={styles.noteIndicator}>
-										<Icon
-											name="message-circle"
-											type="feather"
-											size={10}
-											color={colors.text}
-										/>
-									</View>
-								)}
-							</TouchableOpacity>
+									<Text
+										style={[
+											styles.dayText,
+											{ color: colors.text },
+											!isCurrentMonth && styles.otherMonthText,
+											dayOfWeek === 0 && styles.sundayText,
+											dayOfWeek === 6 && styles.saturdayText,
+											isFutureDate && styles.futureDateText,
+										]}
+									>
+										{format(day, "d")}
+									</Text>
+									{log?.notes && isCurrentMonth && !isFutureDate && (
+										<View style={styles.noteIndicator}>
+											<Icon
+												name="message-circle"
+												type="feather"
+												size={10}
+												color={colors.text}
+											/>
+										</View>
+									)}
+								</View>
 						);
 					})}
 				</View>
