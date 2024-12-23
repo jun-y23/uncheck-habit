@@ -19,7 +19,7 @@ import {
 	ScrollView,
 	StyleSheet,
 	TextInput,
-	TouchableOpacity,
+	FlatList,
 	View,
 } from "react-native";
 import type { Habit } from "../types/type";
@@ -154,6 +154,8 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 		},
 		[id],
 	);
+
+	const notes = logs.filter((log) => log.notes);
 
 	// 月を変更
 	const changeMonth = (increment: number) => {
@@ -295,6 +297,13 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 			) : (
 				renderCalendar()
 			)}
+
+			{notes.map((note) => (
+					<View style={styles.logItem}>
+						<Text style={styles.dateText}>{note.date}</Text>
+							<Text style={styles.notesText}>{note.notes}</Text>
+					</View>
+			))}
 
 			<Dialog
 				isVisible={isDeleteDialogVisible}
@@ -447,4 +456,26 @@ const styles = StyleSheet.create({
 		margin: 16,
 		borderColor: "red",
 	},
+	flatList: {
+    flex: 1,
+  },
+  logItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  notesText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  noNotesText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+  },
 });
