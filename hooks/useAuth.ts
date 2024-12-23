@@ -1,10 +1,27 @@
 import type { Session } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 
 export function useSession() {
 	const [session, setSession] = useState<Session | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+
+	const signInAnonymously = useCallback(async () => {
+		try {
+			const { data, error } = await supabase.auth.signInAnonymously();
+
+			if (error) {
+				console.error("Anonymous sign in error:", error.message);
+				return { error };
+			}
+
+			setSession(data.session);
+			return { data };
+		} catch (error) {
+			console.error("Unexpected error during anonymous sign in:", error);
+			return { error };
+		}
+	}, []);
 
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,5 +47,5 @@ export function useSession() {
 		return () => subscription.unsubscribe();
 	}, []);
 
-	return { session, isLoading };
+	return { session, isLoading, signInAnonymously };
 }
