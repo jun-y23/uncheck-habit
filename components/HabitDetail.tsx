@@ -52,7 +52,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 
 	const [habit, setHabit] = useState<Habit>();
 
-	const [isEditing, setIsEditing] = useState(false);
 	const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
 	const [selectedMonth, setSelectedMonth] = useState(new Date());
 	const [logs, setLogs] = useState<
@@ -60,10 +59,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 	>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const today = startOfDay(new Date());
-
-	const handleDayPress = () => {
-		console.log("");
-	};
 
 	const getStatusColor = (status?: string) => {
 		switch (status) {
