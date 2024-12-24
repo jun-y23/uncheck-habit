@@ -28,13 +28,13 @@ export function useSession() {
 			setSession(session);
 			setIsLoading(false);
 
-			if (!session) {
-				supabase.auth.signInAnonymously().then(({ data: { session } }) => {
-					console.log("Signed in anonymously", session);
-					setSession(session.user);
-					setIsLoading(false);
-				});
-			}
+			// if (!session) {
+			// 	supabase.auth.signInAnonymously().then(({ data: { session } }) => {
+			// 		console.log("Signed in anonymously", session);
+			// 		setSession(session.user);
+			// 		setIsLoading(false);
+			// 	});
+			// }
 		});
 
 		const {

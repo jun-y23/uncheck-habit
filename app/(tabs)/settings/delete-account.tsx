@@ -7,7 +7,6 @@ import { supabase } from "../../../libs/supabase";
 export default function DeleteAccountScreen() {
 	const [isDeleting, setIsDeleting] = useState(false);
 
-	// アノニマスログインもされてないページが必要？
 	const handleDeleteAccount = async () => {
 		Alert.alert(
 			"アカウントの削除",
@@ -24,7 +23,7 @@ export default function DeleteAccountScreen() {
 							if (error) throw error;
 
 							await supabase.auth.signOut();
-							router.replace("/home");
+							router.replace("/");
 						} catch (error) {
 							Alert.alert("エラー", "アカウントの削除に失敗しました");
 						} finally {

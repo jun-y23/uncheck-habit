@@ -12,6 +12,7 @@ import "react-native-reanimated";
 import { useSession } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { se } from "date-fns/locale";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -45,6 +46,7 @@ export default function RootLayout() {
 		return null;
 	}
 
+	console.log(session);
 	if (!session) {
     return (
       <View style={styles.container}>
