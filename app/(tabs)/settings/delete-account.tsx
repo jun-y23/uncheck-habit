@@ -20,15 +20,21 @@ export default function DeleteAccountScreen() {
 						try {
 							setIsDeleting(true);
 							const { error } = await supabase.rpc("delete_user_data");
-							if (error) throw error;
-
+							
+							if (error) {
+								console.error("Delete user data error:", error);
+								Alert.alert("エラー", `データの削除に失敗しました: ${error.message}`);
+								return;
+							}
+					
+							// データ削除成功後にサインアウト
 							await supabase.auth.signOut();
-							router.replace("/");
 						} catch (error) {
-							Alert.alert("エラー", "アカウントの削除に失敗しました");
+							console.error("Unexpected error:", error);
+							Alert.alert("エラー", "予期せぬエラーが発生しました");
 						} finally {
 							setIsDeleting(false);
-						}
+						}					
 					},
 				},
 			],

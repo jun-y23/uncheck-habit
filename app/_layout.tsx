@@ -46,7 +46,6 @@ export default function RootLayout() {
 		return null;
 	}
 
-	console.log(session);
 	if (!session) {
     return (
       <View style={styles.container}>
