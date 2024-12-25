@@ -299,7 +299,7 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 			)}
 
 			{notes.map((note) => (
-					<View style={styles.logItem}>
+					<View style={styles.logItem} key={note.date}>
 						<Text style={styles.dateText}>{note.date}</Text>
 							<Text style={styles.notesText}>{note.notes}</Text>
 					</View>
