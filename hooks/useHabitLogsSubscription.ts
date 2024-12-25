@@ -182,7 +182,7 @@ export const useHabitLogsSubscription = ({
 					status,
 					notes,
 				});
-
+				console.log(error, status, notes);
 				if (error) throw error;
 			}
 		} catch (error) {

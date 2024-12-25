@@ -20,16 +20,29 @@ import Animated, {
 	useAnimatedGestureHandler,
 } from "react-native-reanimated";
 import * as z from "zod";
+import { ErrorMessage } from "@hookform/error-message"
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
 
 const habitLogSchema = z.object({
-	logID: z.string().optional(),
-	habitID: z.string(),
-	status: z.enum(["unchecked", "achieved", "not_achieved"]),
-	date: z.date(),
-	notes: z.string().max(200, "メモは200文字以内で入力してください").optional(),
+  logID: z.string().optional(),
+  habitID: z.string(),
+  status: z
+    .enum(["achieved", "not_achieved", "unchecked"])
+    .superRefine((value, ctx) => {
+      // フォームからの入力の場合のみバリデーションを適用
+      if (ctx.path.length > 0 && value === "unchecked") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.invalid_enum_value,
+          message: "選択してください",
+          received: value,
+          options: ["achieved", "not_achieved"]
+        });
+      }
+    }),
+  date: z.date(),
+  notes: z.string().max(200, "メモは200文字以内で入力してください").optional(),
 });
 
 const habitLogFormSchema = habitLogSchema.omit({
@@ -56,7 +69,7 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 }) => {
 	const translateY = useSharedValue(SCREEN_HEIGHT);
 
-	const { control, handleSubmit, reset, formState } = useForm<HabitLogFormData>(
+	const { control, handleSubmit, reset, formState: {errors} } = useForm<HabitLogFormData>(
 		{
 			resolver: zodResolver(habitLogFormSchema),
 			values: {
@@ -153,25 +166,22 @@ const CalendarOverlay: React.FC<CalendarOverlayProps> = ({
 						render={({ field: { onChange, value } }) => (
 							<View style={styles.statusButtons}>
 								<Button
-									title="未達成"
-									onPress={() => onChange("not_achieved")}
-									type={value === "not_achieved" ? "solid" : "outline"}
-									buttonStyle={styles.statusButton}
-								/>
-								<Button
 									title="達成"
 									onPress={() => onChange("achieved")}
 									type={value === "achieved" ? "solid" : "outline"}
 									buttonStyle={styles.statusButton}
 								/>
 								<Button
-									title="未チェック"
-									onPress={() => onChange("unchecked")}
-									type={value === "unchecked" ? "solid" : "outline"}
+									title="未達成"
+									onPress={() => onChange("not_achieved")}
+									type={value === "not_achieved" ? "solid" : "outline"}
 									buttonStyle={styles.statusButton}
 								/>
 							</View>
 						)}
+					/>
+					<ErrorMessage errors={errors} name="status" 
+						render={({ message }) => <Text>{message}</Text>}
 					/>
 					<Controller
 						control={control}
@@ -227,7 +237,7 @@ const styles = StyleSheet.create({
 	},
 	statusButtons: {
 		flexDirection: "row",
-		justifyContent: "space-between",
+		justifyContent: "space-around",
 		marginVertical: 15,
 	},
 	statusButton: {
