@@ -144,6 +144,57 @@ CREATE POLICY "Service role can manage all statistics"
     USING (true)
     WITH CHECK (true);
 
+create or replace function insert_yesterday_habit_logs()
+returns void
+language plpgsql
+as $$
+declare
+  yesterday date;
+begin
+  -- 前日の日付を取得
+  yesterday := current_date - interval '1 day';
+
+  -- 未記録の日次習慣に対してログを挿入
+  insert into habit_logs (
+    habit_id,
+    date,
+    status,
+    notes,
+    created_at,
+    updated_at
+  )
+  select 
+    h.id,
+    yesterday,
+    'achieved',
+    '自動達成記録',
+    now(),
+    now()
+  from habits h
+  where h.frequency_type = 'daily' 
+    and h.is_archived = false
+    and not exists (
+      select 1 
+      from habit_logs l 
+      where l.habit_id = h.id 
+        and l.date = yesterday
+    );
+end;
+$$;
+
+-- 実行権限を付与
+grant execute on function insert_yesterday_habit_logs to postgres;
+grant execute on function insert_yesterday_habit_logs to service_role;
+
+-- cronジョブのスケジュール
+SELECT cron.schedule(
+    'insert-yesterday-habit-log',
+    '0 1 * * *',
+    $$
+        SELECT public.insert_yesterday_habit_logs();
+    $$
+);
+
 -- 統計ビュー
 CREATE OR REPLACE VIEW public.habit_statistics_view AS
 SELECT 

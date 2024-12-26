@@ -11,7 +11,7 @@ interface UpdateLogProps {
 	logID?: string;
 	habitID: string;
 	date: Date;
-	status: "achieved" | "not_achieved" | "unchecked";
+	status: "achieved" | "not_achieved";
 	notes: string;
 }
 
@@ -157,15 +157,8 @@ export const useHabitLogsSubscription = ({
 				)
 			);
 
+			// ここでid渡ってきてない
 			if (logID) {
-				if (status === "unchecked") {
-					const { error } = await supabase
-						.from("habit_logs")
-						.delete()
-						.eq("id", logID);
-					if (error) throw error;
-				}
-
 				const { error } = await supabase
 					.from("habit_logs")
 					.update({
