@@ -84,6 +84,7 @@ const HomeScreen = () => {
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<SafeAreaView style={styles.safeArea}>
+			<View style={styles.container}>
 				<View style={styles.container}>
 					<WeeklyCalendarView
 						currentDate={currentDate}
@@ -103,6 +104,7 @@ const HomeScreen = () => {
 						onPress={() => router.push("/habit-selection")}
 						buttonStyle={styles.addButton}
 					/>
+				</View>
 				</View>
 			</SafeAreaView>
 			<CalendarOverlay
@@ -361,6 +363,7 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flex: 1,
+		gap:10,
 	},
 	loadingContainer: {
 		padding: 16,
@@ -368,17 +371,18 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 	},
 	buttonContainer: {
-		position: "absolute",
-		bottom: 20,
-		right: 20,
+		// position: "absolute",
+		// bottom: 20,
+		// right: 20,
 		// 追加: SafeAreaViewの内側に配置されるようにする
 		// iPhoneXなどのノッチがある端末でも適切に表示される
 		marginBottom: 10,
+		alignItems: "flex-end",
+		paddingRight: 20,
 	},
 	addButton: {
 		borderRadius: 30,
-		paddingVertical: 10,
-		paddingHorizontal: 20,
+		width: 150,
 	},
 	calendarContainer: {
 		flexDirection: "row",

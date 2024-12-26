@@ -9,6 +9,7 @@ export default function HabitListScreen() {
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
+			<View style={styles.container}>
 			<HabitList />
 			<View style={styles.buttonContainer}>
 					<Button
@@ -17,6 +18,7 @@ export default function HabitListScreen() {
 						onPress={() => router.push("/habit-selection")}
 						buttonStyle={styles.addButton}
 					/>
+				</View>
 				</View>
 		</SafeAreaView>
 	);
@@ -27,17 +29,22 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: "#f5f5f5",
 	},
+	container: {
+		flex: 1,
+		gap:10,
+	},
 	buttonContainer: {
-		position: "absolute",
-		bottom: 20,
-		right: 20,
+		// position: "absolute",
+		// bottom: 20,
+		// right: 20,
 		// 追加: SafeAreaViewの内側に配置されるようにする
 		// iPhoneXなどのノッチがある端末でも適切に表示される
 		marginBottom: 10,
+		alignItems: "flex-end",
+		paddingRight: 20,
 	},
 	addButton: {
 		borderRadius: 30,
-		paddingVertical: 10,
-		paddingHorizontal: 20,
+		width: 150,
 	},
 });
