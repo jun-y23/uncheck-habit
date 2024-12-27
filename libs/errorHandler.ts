@@ -30,7 +30,7 @@ export class ErrorHandler {
       error.message === "Network request failed" || error.code === "ERR_NETWORK"
     ) {
       return {
-        type: ErrorType.NETWORK,
+        type: ErrorType.NETWORK_ERROR,
         message: "ネットワーク接続を確認してください",
         originalError: error,
       };

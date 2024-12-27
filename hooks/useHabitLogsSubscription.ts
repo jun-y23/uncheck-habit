@@ -1,8 +1,16 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { addDays, endOfWeek, format, startOfWeek, subDays } from "date-fns";
+import {
+	addDays,
+	endOfWeek,
+	format,
+	set,
+	startOfWeek,
+	subDays,
+} from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../libs/supabase";
 import type { Database } from "../types/schema";
+import { AppError, ErrorType } from "../types/error";
 
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"];
 type AppHabitLog = Omit<HabitLog, "updated_at" | "created_at">;
@@ -29,6 +37,7 @@ export const useHabitLogsSubscription = ({
 	const [logs, setLogs] = useState<AppHabitLog[]>([]);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 	const [updatingDates, setUpdatingDates] = useState<Set<string>>(new Set());
+	const [error, setError] = useState<AppError | null>(null);
 
 	const [currentDate, setCurrentDate] = useState(_currentDate);
 	useEffect(() => {
@@ -41,6 +50,31 @@ export const useHabitLogsSubscription = ({
 
 	const startDateStr = format(subDays(currentDate, 6), "yyyy-MM-dd");
 	const endDateStr = format(currentDate, "yyyy-MM-dd");
+
+	const handleError = useCallback((error: any, type: ErrorType): AppError => {
+		const appError: AppError = {
+			type,
+			message: "予期せぬエラーが発生しました",
+			originalError: error,
+		};
+
+		if (error && "code" in error) {
+			switch (error.code) {
+				case "PGRST301":
+					appError.type = ErrorType.AUTHENTICATION;
+					appError.message = "認証エラーが発生しました";
+					break;
+				case "ERR_NETWORK":
+					appError.type = ErrorType.NETWORK_ERROR;
+					appError.message = "ネットワーク接続を確認してください";
+					break;
+			}
+		}
+
+		onError?.(error instanceof Error ? error : new Error(appError.message));
+		setError(appError);
+		return appError;
+	}, [onError]);
 
 	const fetchLogs = useCallback(async () => {
 		try {
@@ -61,7 +95,8 @@ export const useHabitLogsSubscription = ({
 				.order("date", { ascending: true });
 
 			if (error) {
-				throw error;
+				handleError(error, ErrorType.HABIT_LOG_FETCH);
+				return null;
 			}
 			const organizedLogs: AppHabitLog[] = Array.from(
 				{ length: 7 },
@@ -84,6 +119,7 @@ export const useHabitLogsSubscription = ({
 			);
 
 			setLogs(organizedLogs);
+			setError(null);
 		} catch (error) {
 			return null;
 		} finally {
@@ -167,7 +203,10 @@ export const useHabitLogsSubscription = ({
 					})
 					.eq("id", logID);
 
-				if (error) throw error;
+				// setLogs(previousLogs);
+				if (error) {
+					handleError(error, ErrorType.HABIT_LOG_UPDATE);
+				}
 			} else {
 				const { error } = await supabase.from("habit_logs").insert({
 					habit_id: habitId,
@@ -175,15 +214,14 @@ export const useHabitLogsSubscription = ({
 					status,
 					notes,
 				});
-				console.log(error, status, notes);
-				if (error) throw error;
+				if (error) {
+					handleError(error, ErrorType.HABIT_LOG_UPDATE);
+				}
 			}
 		} catch (error) {
 			// エラー時は元の状態に戻す
 			await fetchLogs();
-			onError?.(
-				error instanceof Error ? error : new Error("Failed to update log"),
-			);
+			handleError(error, ErrorType.HABIT_LOG_UPDATE);
 		} finally {
 			// 更新中の日付を削除
 			setUpdatingDates((prev) => {
@@ -199,5 +237,7 @@ export const useHabitLogsSubscription = ({
 		isInitialLoading,
 		updatingDates,
 		updateLog,
+		error,
+		retry: fetchLogs,
 	};
 };

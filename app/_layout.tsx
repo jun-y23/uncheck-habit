@@ -9,11 +9,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useCallback } from "react";
 import "react-native-reanimated";
 import ErrorBoundary  from 'react-native-error-boundary';
+import {ErrorDisplay} from "@/components/ErrorDisplay";
 
 import { useSession } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { se } from "date-fns/locale";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

@@ -20,6 +20,7 @@ import CalendarOverlay from "../../components/CalendarOverlay";
 import type { HabitLogData } from "../../components/CalendarOverlay";
 import { useHabits } from "../../hooks/useHabits";
 import type { Habit } from "../../types/type";
+import {ErrorDisplay} from "../../components/ErrorDisplay";
 
 // Type definitions
 type HabitStatus = "unchecked" | "achieved" | "not_achieved";
@@ -219,7 +220,7 @@ const HabitRow: React.FC<HabitRowProps> = ({
 }) => {
 	const fadeAnim = useRef(new Animated.Value(1)).current;
 
-	const { logs, isInitialLoading, updatingDates, updateLog } =
+	const { logs, isInitialLoading, updatingDates, updateLog, error, retry: fetchLogs } =
 		useHabitLogsSubscription({
 			habitId: habit.id,
 			_currentDate: currentDate,
@@ -293,6 +294,15 @@ const HabitRow: React.FC<HabitRowProps> = ({
 			</View>
 		);
 	}
+
+	if (error) {
+    return (
+      <ErrorDisplay
+        error={error}
+        onRetry={fetchLogs}
+      />
+    );
+  }
 
 	return (
 		<View style={styles.container}>

@@ -11,7 +11,7 @@ interface ErrorDisplayProps {
 export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, onRetry }) => {
   const getErrorMessage = (error: AppError) => {
     switch (error.type) {
-      case ErrorType.NETWORK:
+      case ErrorType.NETWORK_ERROR:
         return {
           title: 'ネットワークエラー',
           message: 'インターネット接続を確認してください'
