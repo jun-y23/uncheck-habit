@@ -2,6 +2,7 @@
   "expo": {
     "name": "HabiTora",
     "slug": "habi-tora",
+    "description": "自動チェックで楽々習慣化！シンプルな習慣トラッカー",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
