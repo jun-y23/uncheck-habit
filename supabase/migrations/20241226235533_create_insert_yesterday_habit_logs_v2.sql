@@ -5,7 +5,7 @@ as $$
 declare
   yesterday date;
 begin
-  yesterday := current_date - interval '1 day';
+  yesterday := current_date;
 
   insert into habit_logs (
     habit_id,
