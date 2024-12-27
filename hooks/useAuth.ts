@@ -11,14 +11,12 @@ export function useSession() {
 			const { data, error } = await supabase.auth.signInAnonymously();
 
 			if (error) {
-				console.error("Anonymous sign in error:", error.message);
 				return { error };
 			}
 
 			setSession(data.session);
 			return { data };
 		} catch (error) {
-			console.error("Unexpected error during anonymous sign in:", error);
 			return { error };
 		}
 	}, []);
@@ -27,14 +25,6 @@ export function useSession() {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			setSession(session);
 			setIsLoading(false);
-
-			// if (!session) {
-			// 	supabase.auth.signInAnonymously().then(({ data: { session } }) => {
-			// 		console.log("Signed in anonymously", session);
-			// 		setSession(session.user);
-			// 		setIsLoading(false);
-			// 	});
-			// }
 		});
 
 		const {

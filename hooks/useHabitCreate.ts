@@ -21,7 +21,6 @@ export function useHabitCreate() {
 				.from("habits")
 				.insert([{ ...habit, user_id: session.user.id }])
 				.single();
-			console.log(data, error);
 
 			if (error) throw error;
 			return data;
