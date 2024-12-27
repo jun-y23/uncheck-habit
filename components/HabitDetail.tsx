@@ -108,7 +108,6 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 
 			if (error) throw error;
 		} catch (error) {
-			console.log("data:", error);
 			Alert.alert("エラー", "データの取得に失敗しました");
 		}
 	}, [id]);
