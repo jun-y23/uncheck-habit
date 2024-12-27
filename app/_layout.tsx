@@ -8,6 +8,7 @@ import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useCallback } from "react";
 import "react-native-reanimated";
+import ErrorBoundary  from 'react-native-error-boundary';
 
 import { useSession } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -65,6 +66,7 @@ export default function RootLayout() {
   }
 
 	return (
+    <ErrorBoundary FallbackComponent={ErrorDisplay}>
 		<View style={{ flex: 1 }} onLayout={onLayoutRootView}>
 		<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
 			<Stack>
@@ -88,6 +90,7 @@ export default function RootLayout() {
 			</Stack>
 		</ThemeProvider>
 		</View>
+        </ErrorBoundary>
 	);
 }
 
