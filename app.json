@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "uncheck-habit",
-    "slug": "uncheck-habit",
+    "name": "HabiTora",
+    "slug": "habi-tora",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
