@@ -52,7 +52,7 @@ export default function RootLayout() {
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.title}>
-						Uncheck Habit
+						HabiTora
 					</Text>
           <TouchableOpacity 
             style={styles.startButton}
