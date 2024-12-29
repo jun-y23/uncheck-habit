@@ -28,16 +28,6 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { ja } from "date-fns/locale";
 import { supabase } from "../libs/supabase";
 
-const getStatusColor = (status?: string) => {
-	switch (status) {
-		case "achieved":
-			return "#4CAF50";
-		case "not_achieved":
-			return "#FF5252";
-		default:
-			return "#E0E0E0";
-	}
-};
 
 interface HabitDetailScreenProps {
 	id: string;
@@ -64,7 +54,7 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 		switch (status) {
 			case "achieved":
 				return {
-					background: "#00FF00",
+					background: "#008000",
 					text: "#FFFFFF",
 				};
 			case "not_achieved":
