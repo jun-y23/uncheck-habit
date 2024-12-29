@@ -261,9 +261,9 @@ const HabitRow: React.FC<HabitRowProps> = ({
 	const getCellColor = useCallback((status: HabitStatus): string => {
 		switch (status) {
 			case "achieved":
-				return "#008000";
+				return "#2ECC71";
 			case "not_achieved":
-				return "#FF7F7F";
+				return "#E74C3C";
 			default:
 				return "#EBEDF0";
 		}

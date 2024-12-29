@@ -212,6 +212,7 @@ export type Database = {
           achievement_rate: number | null
           calculated_at: string | null
           id: string | null
+          is_archived: boolean | null
           name: string | null
           start_date: string | null
           total_days: number | null
@@ -222,6 +223,14 @@ export type Database = {
     }
     Functions: {
       calculate_habit_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      delete_user_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      insert_yesterday_habit_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
