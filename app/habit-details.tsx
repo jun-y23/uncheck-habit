@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import * as z from "zod";
 import { useHabitCreate } from "../hooks/useHabitCreate";
-import { supabase } from "../libs/supabase";
+import {DatePickerField} from "../components/DatePickerField";
 
 const habitSchema = z.object({
 	name: z
@@ -40,7 +40,6 @@ type FrequencyOptionProps = {
 const HabitDetailsScreen = () => {
 	const params = useLocalSearchParams();
 	const router = useRouter();
-	const [showDatePicker, setShowDatePicker] = useState(false);
 	const { createHabit, loading } = useHabitCreate();
 
 	const habitData = JSON.parse(params.habit as string);
@@ -63,8 +62,9 @@ const HabitDetailsScreen = () => {
 			name,
 			frequency_type: frequency.type,
 			frequency_value: frequency.value || 1,
-			start_date: startDate.toISOString(),
+			start_date: startDate.toDateString(),
 		};
+		console.log(habitData);
 
 		await createHabit(habitData);
 
@@ -150,32 +150,12 @@ const HabitDetailsScreen = () => {
 				</>
 			)} */}
 
-			<Text style={styles.label}>開始日</Text>
-			<Button
-				title={format(startDate, "yyyy年MM月dd日")}
-				onPress={() => setShowDatePicker(true)}
-				type="outline"
-			/>
-			{showDatePicker && (
-				<Controller
-					control={control}
-					name="startDate"
-					render={({ field: { onChange, value } }) => (
-						<DateTimePicker
-							value={value}
-							mode="date"
-							display="default"
-							onChange={(event, selectedDate) => {
-								setShowDatePicker(false);
-								if (selectedDate) {
-									onChange(selectedDate);
-								}
-							}}
-							locale="ja-JP"
-						/>
-					)}
-				/>
-			)}
+		<DatePickerField
+      control={control}
+      name="startDate"
+      label="開始日"
+      errorMessage="開始日を選択してください"
+    />
 
 			<Button
 				title="この設定で始める"
