@@ -64,7 +64,6 @@ const HabitDetailsScreen = () => {
 			frequency_value: frequency.value || 1,
 			start_date: startDate.toDateString(),
 		};
-		console.log(habitData);
 
 		await createHabit(habitData);
 
