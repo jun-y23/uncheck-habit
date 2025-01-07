@@ -23,3 +23,6 @@ expo-env.d.ts
 .biome/
 
 .env
+
+android/
+ios/
