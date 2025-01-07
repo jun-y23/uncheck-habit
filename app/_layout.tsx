@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler';
+import "react-native-reanimated";
 import {
 	DarkTheme,
 	DefaultTheme,
@@ -7,7 +9,6 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useState } from "react";
-import "react-native-reanimated";
 import ErrorBoundary  from 'react-native-error-boundary';
 import {ErrorDisplay} from "@/components/ErrorDisplay";
 
