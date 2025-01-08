@@ -7,7 +7,7 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+// import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useState } from "react";
 import ErrorBoundary  from 'react-native-error-boundary';
 import {ErrorDisplay} from "@/components/ErrorDisplay";
@@ -15,15 +15,15 @@ import {ErrorDisplay} from "@/components/ErrorDisplay";
 import { useSession } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-// import * as Sentry from "@sentry/react-native";
+import * as Sentry from "@sentry/react-native";
 
-// Sentry.init({
-//   dsn: "https://58c530e0e755d6a281ce4e7ba0b63979@o4508559704457216.ingest.us.sentry.io/4508559709831169",
-//   debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-//   tracesSampleRate: 0.2, // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing. Adjusting this value in production.
-// });
+Sentry.init({
+  dsn: "https://58c530e0e755d6a281ce4e7ba0b63979@o4508559704457216.ingest.us.sentry.io/4508559709831169",
+  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+  tracesSampleRate: 0.2, // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing. Adjusting this value in production.
+});
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -126,4 +126,4 @@ const styles = StyleSheet.create({
 });
 
 // https://github.com/expo/expo/issues/33316
-// export default Sentry.wrap(RootLayout);
+export default Sentry.wrap(RootLayout);
