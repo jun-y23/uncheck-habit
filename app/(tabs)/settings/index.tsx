@@ -6,11 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
 	const openPrivacyPolicy = () => {
-		Linking.openURL("https://legal.omochi-tech.com/habitore/privacy.html");
+		Linking.openURL("https://legal.omochi-tech.com/habitora/privacy.html");
 	};
 
 	const openTerms = () => {
-		Linking.openURL("https://legal.omochi-tech.com/habitore/terms.html");
+		Linking.openURL("https://legal.omochi-tech.com/habitora/terms.html");
 	};
 
 	const openContact = () => {
