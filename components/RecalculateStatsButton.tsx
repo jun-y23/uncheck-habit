@@ -33,9 +33,6 @@ export const RecalculateStatsButton = () => {
       <Text style={{ marginBottom: 8, textAlign: 'center', color: '#666' }}>
         ※ 統計情報は毎日深夜1時に自動更新されます
       </Text>
-      <Text style={{ marginBottom: 8, textAlign: 'center', color: '#666' }}>
-        ※ 1日1回のみ手動で更新できます
-      </Text>
       
       <Button
         title="統計を更新する"
