@@ -2,6 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HabitList } from "../../../components/HabitList";
 import { Button, Icon } from "@rneui/themed";
+import {RecalculateStatsButton} from "../../../components/RecalculateStatsButton";
 import { useRouter } from "expo-router";
 
 export default function HabitListScreen() {
@@ -10,6 +11,7 @@ export default function HabitListScreen() {
 	return (
 		<SafeAreaView style={styles.safeArea}>
 			<View style={styles.container}>
+			<RecalculateStatsButton />
 			<HabitList />
 			<View style={styles.buttonContainer}>
 					<Button
