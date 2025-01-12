@@ -24,7 +24,7 @@ import {
 } from "react-native";
 import type { Habit } from "../types/type";
 
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { ja } from "date-fns/locale";
 import { supabase } from "../libs/supabase";
 
@@ -36,7 +36,7 @@ interface HabitDetailScreenProps {
 export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 	props: HabitDetailScreenProps,
 ) => {
-	const navigation = useNavigation();
+	const router = useRouter();
 
 	const { id } = props;
 
@@ -78,9 +78,10 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 				.update({ is_archived: true })
 				.eq("id", id);
 
+			setIsDeleteDialogVisible(false);
 			if (error) throw error;
 
-			navigation.goBack();
+			router.push("/habits");
 		} catch (error) {
 			Alert.alert("エラー", "削除に失敗しました");
 		}
@@ -262,12 +263,7 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 			<View style={styles.nameSection}>
 				<View style={styles.nameContainer}>
 					<Text style={styles.nameText}>{habit.name}</Text>
-					{/* <Icon
-						name="edit"
-						onPress={() => setIsEditing(true)}
-						containerStyle={styles.editIcon}
-					/>
-					<Icon name="delete" onPress={() => setIsDeleteDialogVisible(true)} /> */}
+					<Icon name="delete" onPress={() => setIsDeleteDialogVisible(true)} />
 				</View>
 			</View>
 
