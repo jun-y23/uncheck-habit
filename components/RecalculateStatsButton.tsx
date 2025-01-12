@@ -2,32 +2,31 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Button, Text, Overlay } from '@rneui/themed';
 import { supabase } from '../libs/supabase';
+import { useRecalculateStatistics } from '../hooks/useRecalculateStatistics';
 
 export const RecalculateStatsButton = () => {
-  const [loading, setLoading] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [resultMessage, setResultMessage] = useState('');
 
-  const handleRecalculate = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.rpc('calculate_habit_statistics');
-      
-      if (error) throw error;
-      
-      setResultMessage('統計情報を更新しました');
-      setShowOverlay(true);
-    } catch (error) {
-      if (error instanceof Error) {
-        setResultMessage(error.message);
-      } else {
-        setResultMessage('統計情報の更新に失敗しました');
-      }
-      setShowOverlay(true);
-    } finally {
-      setLoading(false);
-    }
+  const { mutate: recalculate, isPending } = useRecalculateStatistics();
+
+  const handleRecalculate = () => {
+    recalculate(undefined, {
+      onSuccess: () => {
+        setResultMessage('統計情報を更新しました');
+        setShowOverlay(true);
+      },
+      onError: (error) => {
+        setResultMessage(
+          error instanceof Error 
+            ? error.message 
+            : '統計情報の更新に失敗しました'
+        );
+        setShowOverlay(true);
+      },
+    });
   };
+
 
   return (
     <View style={{ padding: 16 }}>
@@ -41,7 +40,7 @@ export const RecalculateStatsButton = () => {
       <Button
         title="統計を更新する"
         onPress={handleRecalculate}
-        loading={loading}
+        loading={isPending}
         buttonStyle={{
           backgroundColor: '#6366f1',
           borderRadius: 8,

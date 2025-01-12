@@ -23,6 +23,7 @@ import {
 	View,
 } from "react-native";
 import type { Habit } from "../types/type";
+import {useArchiveHabit} from '../hooks/useHabits';	
 
 import { useRouter } from "expo-router";
 import { ja } from "date-fns/locale";
@@ -70,16 +71,13 @@ export const HabitDetail: React.FC<HabitDetailScreenProps> = (
 		}
 	};
 
+	const {mutate: archiveHabit} = useArchiveHabit();
+
 	// // 習慣の削除
 	const deleteHabit = async () => {
 		try {
-			const { error } = await supabase
-				.from("habits")
-				.update({ is_archived: true })
-				.eq("id", id);
-
+			archiveHabit(id)
 			setIsDeleteDialogVisible(false);
-			if (error) throw error;
 
 			router.push("/habits");
 		} catch (error) {

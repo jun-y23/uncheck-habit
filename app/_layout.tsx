@@ -16,6 +16,8 @@ import { useSession } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Sentry from "@sentry/react-native";
+import { QueryClientProvider } from '@tanstack/react-query';
+import {queryClient} from '../libs/query-client';
 
 Sentry.init({
   dsn: "https://58c530e0e755d6a281ce4e7ba0b63979@o4508559704457216.ingest.us.sentry.io/4508559709831169",
@@ -66,6 +68,7 @@ function RootLayout() {
   }
 
   return (
+    <QueryClientProvider client={queryClient}>
     <ErrorBoundary FallbackComponent={ErrorDisplay}>
       <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
         <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -91,6 +94,7 @@ function RootLayout() {
         </ThemeProvider>
       </View>
     </ErrorBoundary>
+    </QueryClientProvider>
   );
 }
 

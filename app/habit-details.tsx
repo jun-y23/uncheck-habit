@@ -13,7 +13,7 @@ import {
 	View,
 } from "react-native";
 import * as z from "zod";
-import { useHabitCreate } from "../hooks/useHabitCreate";
+import { useCreateHabit } from "../hooks/useHabits";
 import {DatePickerField} from "../components/DatePickerField";
 
 const habitSchema = z.object({
@@ -40,7 +40,7 @@ type FrequencyOptionProps = {
 const HabitDetailsScreen = () => {
 	const params = useLocalSearchParams();
 	const router = useRouter();
-	const { createHabit, loading } = useHabitCreate();
+	const { mutate: createHabit, isLoading, error } = useCreateHabit();
 
 	const habitData = JSON.parse(params.habit as string);
 
