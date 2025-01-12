@@ -42,8 +42,17 @@ export const DatePickerField = <T extends FieldValues>({
       render={({ field: { onChange, value }, fieldState: { error } }) => (
         <View style={styles.container}>
           {label && <Text style={styles.label}>{label}</Text>}
+          <DateTimePicker
+              value={value || new Date()}
+              mode="date"
+              display={'compact'}
+              onChange={(event, date) => handleDateChange(onChange, event, date)}
+              locale="ja-JP"
+              minimumDate={minDate}
+              maximumDate={maxDate}
+            />
           
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               styles.dateButton,
               error && styles.errorBorder
@@ -58,7 +67,7 @@ export const DatePickerField = <T extends FieldValues>({
                 ? format(new Date(value), 'yyyy年MM月dd日', { locale: ja })
                 : '日付を選択'}
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {error && (
             <Text style={styles.errorMessage}>
@@ -66,17 +75,6 @@ export const DatePickerField = <T extends FieldValues>({
             </Text>
           )}
 
-          {showPicker && (
-            <DateTimePicker
-              value={value || new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(event, date) => handleDateChange(onChange, event, date)}
-              locale="ja-JP"
-              minimumDate={minDate}
-              maximumDate={maxDate}
-            />
-          )}
         </View>
       )}
     />
@@ -86,10 +84,11 @@ export const DatePickerField = <T extends FieldValues>({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
     fontWeight: '500',
     color: '#333',
   },
