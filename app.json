@@ -12,7 +12,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.junyamaguchi.habitora",
       "config": {
-        "usesNonExemptEncryption": false
+        "usesNonExemptEncryption": false,
+      },
+      "entitlements": {
+        "aps-environment": "development"
       }
     },
     "android": {
