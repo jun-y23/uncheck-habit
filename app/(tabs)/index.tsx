@@ -13,6 +13,7 @@ import {
 	StyleSheet,
 	TouchableOpacity,
 	View,
+	RefreshControl,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -59,7 +60,7 @@ const HomeScreen = () => {
 		setInitialData(null);
 	}, []);
 
-	const { habits } = useHabits();
+	const { habits, loading, refetch } = useHabits();
 
 	const goToPreviousWeek = () => {
 		setCurrentDate((prevDate) => subDays(prevDate, 6));
@@ -94,6 +95,8 @@ const HomeScreen = () => {
 					/>
 					<HabitList
 						habits={habits}
+						loading={loading}
+						refetch={refetch}
 						startDate={currentDate}
 						onClickCell={handleOpen}
 					/>
@@ -157,12 +160,14 @@ const WeeklyCalendarView = (props: WeeklyCalendarViewProps) => {
 // HabitList Component
 interface HabitListProps {
 	habits: Habit[];
+	loading: boolean;
+	refetch: () => void;
 	startDate: Date;
 	onClickCell: (habit: HabitLogData) => void;
 }
 
 const HabitList = (props: HabitListProps) => {
-	const { habits, startDate, onClickCell } = props;
+	const { habits, startDate, loading, refetch, onClickCell } = props;
 
 	const weekDays = Array.from({ length: 7 }, (_, index) => {
 		const start = subDays(startDate, 6); // 今日から6日前を開始日に設定
@@ -202,6 +207,9 @@ const HabitList = (props: HabitListProps) => {
 						onClickCell={onClickCell}
 					/>
 				)}
+				refreshControl={
+					<RefreshControl refreshing={loading} onRefresh={refetch} />
+				}
 			/>
 		</View>
 	);
